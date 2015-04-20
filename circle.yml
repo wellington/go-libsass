@@ -8,3 +8,4 @@ checkout:
 dependencies:
   pre:
     - make deps
+    - echo $PKG_CONFIG_PATH
