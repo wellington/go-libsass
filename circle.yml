@@ -1,3 +1,6 @@
+machine:
+  environment:
+    PKG_CONFIG_PATH: $HOME/$CIRCLE_PROJECT_REPONAME/libsass-src/lib/pkgconfig
 checkout:
   post:
     - git submodule sync
