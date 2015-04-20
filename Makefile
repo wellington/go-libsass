@@ -1,4 +1,4 @@
-export PKG_CONFIG_PATH=$(shell pwd)/libsass-src/lib/pkgconfig
+export PKG_CONFIG_PATH=$(shell pwd)/lib/pkgconfig
 
 deps:
 	cd libsass-src; autoreconf -fvi && \
