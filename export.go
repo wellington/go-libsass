@@ -98,7 +98,7 @@ func Error(err error) UnionSassValue {
 
 // Warn takes a string and causes a warning in libsass
 func Warn(s string) UnionSassValue {
-	return C.sass_make_error(C.CString("@warn" + s + ";"))
+	return C.sass_make_warning(C.CString(s))
 }
 
 // WarnHandler captures Sass warnings and redirects to stdout
