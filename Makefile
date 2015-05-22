@@ -18,7 +18,10 @@ libsass-build:
 		../libsass-src/configure --disable-shared --prefix=$(shell pwd) --disable-silent-rules --disable-dependency-tracking
 
 lib: libsass-build
+	mv libsass-src/sass_version.h libsass-src/sass_version.hold
+	cp libsass-build/sass_version.h libsass-src/sass_version.h
 	cd libsass-build && make install
+	mv libsass-src/sass_version.hold libsass-src/sass_version.h
 
 .PHONY: test
 test:
