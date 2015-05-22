@@ -17,6 +17,34 @@ import (
 	"unsafe"
 )
 
+// SassCallback defines the callback libsass eventually executes in
+// sprite_sass
+type SassCallback func(ctx *Context, csv UnionSassValue) UnionSassValue
+
+// Cookie is used for passing context information to libsass.  Cookie is
+// passed to custom handlers when libsass executes them through the go
+// bridge.
+type Cookie struct {
+	Sign string
+	Fn   SassCallback
+	Ctx  *Context
+}
+
+type handler struct {
+	sign     string
+	callback func(ctx *Context, csv UnionSassValue) UnionSassValue
+}
+
+// handlers is the list of registered sass handlers
+var handlers []handler
+
+// RegisterHandler sets the passed signature and callback to the
+// handlers array.
+func RegisterHandler(sign string,
+	callback func(ctx *Context, csv UnionSassValue) UnionSassValue) {
+	handlers = append(handlers, handler{sign, callback})
+}
+
 func (ctx *Context) SetFunc(opts *C.struct_Sass_Options) {
 	cookies := make([]Cookie, len(handlers)+len(ctx.Cookies))
 	// Append registered handlers to cookie array
