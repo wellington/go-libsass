@@ -8,10 +8,10 @@ fetch:
 	git submodule sync
 	git submodule update --init
 
-libsass-build:
+libsass-build: libsass-src/*.cpp
 	# generate configure scripts
 	cd libsass-src; make clean && autoreconf -fvi
-	- rm -rf libsass-build/
+	- rm -rf libsass-build lib include
 	mkdir -p libsass-build
 	# configure and install libsass
 	cd libsass-build && \
