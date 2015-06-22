@@ -7,7 +7,7 @@ package context
 
 // #cgo CFLAGS: -O2 -stdlib=libc++ -fPIC
 // #cgo CPPFLAGS: -w
-// #cgo CXXFLAGS: -g -std=c++11 -pedantic -Wno-c++11-extensions -O2 -std=c++0x -stdlib=libc++ -fPIC
+// #cgo CXXFLAGS: -g -std=c++0x -pedantic -Wno-c++11-extensions -O2 -std=c++0x -stdlib=libc++ -fPIC
 // #include "sass_context.h"
 //
 import "C"
