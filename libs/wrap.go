@@ -64,6 +64,10 @@ func SassCompilerParse(c SassCompiler) {
 	C.sass_compiler_parse(c)
 }
 
+func SassDeleteCompiler(c SassCompiler) {
+	C.sass_delete_compiler(c)
+}
+
 func SassOptionSetCHeaders(gofc SassOptions, goimp SassImporter) {
 	C.sass_option_set_c_headers(gofc, goimp)
 }
@@ -72,4 +76,14 @@ func SassContextGetOutputString(goctx SassContext) string {
 	cstr := C.sass_context_get_output_string(goctx)
 	defer C.free(unsafe.Pointer(cstr))
 	return C.GoString(cstr)
+}
+
+func SassContextGetErrorJSON(goctx SassContext) string {
+	cstr := C.sass_context_get_error_json(goctx)
+	defer C.free(unsafe.Pointer(cstr))
+	return C.GoString(cstr)
+}
+
+func SassContextGetErrorStatus(goctx SassContext) int {
+	return int(C.sass_context_get_error_status(goctx))
 }
