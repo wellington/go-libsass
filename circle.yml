@@ -1,0 +1,4 @@
+machine:
+  environment:
+    CC_FOR_TARGET: gcc
+    CXX_FOR_TARGET: g++
