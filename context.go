@@ -105,7 +105,6 @@ func (ctx *Context) Init(goopts libs.SassOptions) *C.struct_Sass_Options {
 	}
 	cmt := C.bool(ctx.Comments)
 	imgpath := C.CString(ctx.ImageDir)
-	prec := C.int(ctx.Precision)
 
 	defer func() {
 		C.free(unsafe.Pointer(imgpath))
@@ -113,13 +112,14 @@ func (ctx *Context) Init(goopts libs.SassOptions) *C.struct_Sass_Options {
 		// C.sass_delete_data_context(dc)
 	}()
 	Mixins(ctx)
-	gopts := (libs.SassOptions)(unsafe.Pointer(opts))
-	ctx.SetHeaders(gopts)
-	ctx.SetImporters(gopts)
+
+	ctx.SetHeaders(goopts)
+	ctx.SetImporters(goopts)
 	ctx.SetIncludePaths(opts)
 	ctx.SetFunc(opts)
-
-	C.sass_option_set_precision(opts, prec)
+	// prec := C.int(ctx.Precision)
+	// C.sass_option_set_precision(opts, prec)
+	libs.SassOptionSetPrecision(goopts, ctx.Precision)
 	C.sass_option_set_source_comments(opts, cmt)
 	return opts
 }
