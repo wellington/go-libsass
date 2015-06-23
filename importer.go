@@ -3,18 +3,9 @@ package context
 // #include <stdint.h>
 // #include <stdlib.h>
 // #include <string.h>
+// #include <stdio.h>
 // #include "sass_context.h"
 //
-// extern struct Sass_Import** ImporterBridge(const char* url, const char* prev, void* cookie);
-//
-// Sass_Import_List SassImporterHandler(const char* cur_path, Sass_Importer_Entry cb, struct Sass_Compiler* comp)
-// {
-//   void* cookie = sass_importer_get_cookie(cb);
-//   struct Sass_Import* previous = sass_compiler_get_last_import(comp);
-//   const char* prev_path = sass_import_get_path(previous);
-//   Sass_Import_List list = ImporterBridge(cur_path, prev_path, cookie);
-//   return list;
-// }
 //
 // #ifndef UINTMAX_MAX
 // #  ifdef __UINTMAX_MAX__
@@ -46,6 +37,8 @@ type Import struct {
 	Body  io.ReadCloser
 	bytes []byte
 	mod   time.Time
+	Prev  string
+	Path  string
 }
 
 // ModTime returns modification time
@@ -65,19 +58,22 @@ func (p *Imports) Init() {
 }
 
 // Add registers an import in the context.Imports
-func (p *Imports) Add(prev string, cur string, bs []byte) error {
+func (p *Imports) Add(prev string, path string, bs []byte) error {
 	p.Lock()
 	defer p.Unlock()
 
-	im := Import{
-		bytes: bs,
-		mod:   time.Now(),
-	}
 	// TODO: align these with libsass name "stdin"
 	if len(prev) == 0 || prev == "string" {
 		prev = "stdin"
 	}
-	p.m[prev+":"+cur] = im
+	im := Import{
+		bytes: bs,
+		mod:   time.Now(),
+		Prev:  prev,
+		Path:  path,
+	}
+
+	p.m[prev+":"+path] = im
 	return nil
 }
 
@@ -93,11 +89,12 @@ func (p *Imports) Del(path string) {
 func (p *Imports) Get(prev, path string) ([]byte, error) {
 	p.RLock()
 	defer p.RUnlock()
-	imp, ok := p.m[prev+":"+path]
-	if !ok {
-		return nil, ErrImportNotFound
+	for _, imp := range p.m {
+		if imp.Prev == prev && imp.Path == path {
+			return imp.bytes, nil
+		}
 	}
-	return imp.bytes, nil
+	return nil, ErrImportNotFound
 }
 
 // Update attempts to create a fresh Body from the given path
@@ -113,13 +110,18 @@ func (p *Imports) Len() int {
 	return len(p.m)
 }
 
-// SetImporter enables custom importer in libsass
-func (ctx *Context) SetImporter(opts libs.SassOptions) {
+func (ctx *Context) SetImporters(opts libs.SassOptions) {
+	entries := make([]libs.ImportEntry, ctx.Imports.Len())
+	i := 0
 
-	ggoimps := libs.SassMakeImporterList(1)
-	goimp, _ := libs.SassMakeImporter(
-		libs.SassImporterFN(C.SassImporterHandler), 0, ctx)
-	libs.SassImporterSetListEntry(ggoimps, 0, goimp)
-	libs.SassOptionSetCImporters(opts, ggoimps)
-
+	for _, ent := range ctx.Imports.m {
+		bs := ent.bytes
+		entries[i] = libs.ImportEntry{
+			Parent: ent.Prev,
+			Path:   ent.Path,
+			Source: string(bs),
+		}
+		i++
+	}
+	libs.BindImporter(opts, entries)
 }

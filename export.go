@@ -10,8 +10,6 @@ package context
 import "C"
 import (
 	"log"
-	"reflect"
-	"strings"
 	"unsafe"
 )
 
@@ -24,38 +22,6 @@ func GoBridge(cargs UnionSassValue, ptr unsafe.Pointer) UnionSassValue {
 	ck := *(*Cookie)(ptr)
 	usv := ck.Fn(ck.Ctx, cargs)
 	return usv
-}
-
-// ImporterBridge is called by C to pass Importer arguments into Go land. A
-// Sass_Import is returned for libsass to resolve.
-//
-//export ImporterBridge
-func ImporterBridge(url *C.char, prev *C.char, ptr unsafe.Pointer) C.Sass_Import_List {
-	ctx := (*Context)(ptr)
-	parent := C.GoString(prev)
-	rel := C.GoString(url)
-	list := C.sass_make_import_list(1)
-	hdr := reflect.SliceHeader{
-		Data: uintptr(unsafe.Pointer(list)),
-		Len:  1, Cap: 1,
-	}
-	golist := *(*[]C.Sass_Import_Entry)(unsafe.Pointer(&hdr))
-	if body, err := ctx.Imports.Get(parent, rel); err == nil {
-		conts := C.CString(string(body))
-		ent := C.sass_make_import_entry(url, conts, nil)
-		cent := (C.Sass_Import_Entry)(ent)
-		golist[0] = cent
-	} else if strings.HasPrefix(rel, "compass") {
-		ent := C.sass_make_import_entry(url, C.CString(""), nil)
-		cent := (C.Sass_Import_Entry)(ent)
-		golist[0] = cent
-	} else {
-		ent := C.sass_make_import_entry(url, nil, nil)
-		cent := (C.Sass_Import_Entry)(ent)
-		golist[0] = cent
-	}
-
-	return list
 }
 
 // SampleCB example how a callback is defined

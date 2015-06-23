@@ -35,9 +35,9 @@ func (ctx *Context) SetHeaders(opts libs.SassOptions) {
 		entries[i] = libs.ImportEntry{
 			// Each entry requires a unique identifier
 			// https://github.com/sass/libsass/issues/1292
-			uniquename,
-			ent.Content,
-			"",
+			Path:   uniquename,
+			Source: ent.Content,
+			SrcMap: "",
 		}
 	}
 	libs.BindHeader(opts, entries)

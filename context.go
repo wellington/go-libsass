@@ -115,7 +115,7 @@ func (ctx *Context) Init(goopts libs.SassOptions) *C.struct_Sass_Options {
 	Mixins(ctx)
 	gopts := (libs.SassOptions)(unsafe.Pointer(opts))
 	ctx.SetHeaders(gopts)
-	ctx.SetImporter(gopts)
+	ctx.SetImporters(gopts)
 	ctx.SetIncludePaths(opts)
 	ctx.SetFunc(opts)
 

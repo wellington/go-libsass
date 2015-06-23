@@ -21,6 +21,7 @@ import "C"
 import (
 	"errors"
 	"reflect"
+	"strings"
 	"unsafe"
 )
 
@@ -35,12 +36,20 @@ func SassMakeImporterList(gol int) SassImporterList {
 }
 
 type ImportEntry struct {
+	Parent string
 	Path   string
 	Source string
 	SrcMap string
 }
 
-type ImportList []ImportEntry
+func GetEntry(es []ImportEntry, parent string, path string) (string, error) {
+	for _, e := range es {
+		if parent == e.Parent && path == e.Path {
+			return e.Source, nil
+		}
+	}
+	return "", errors.New("entry not found")
+}
 
 //export HeaderBridge
 func HeaderBridge(ptr unsafe.Pointer) C.Sass_Import_List {
@@ -67,6 +76,38 @@ func HeaderBridge(ptr unsafe.Pointer) C.Sass_Import_List {
 	}
 
 	return cents
+}
+
+// ImporterBridge is called by C to pass Importer arguments into Go land. A
+// Sass_Import is returned for libsass to resolve.
+//
+//export ImporterBridge
+func ImporterBridge(url *C.char, prev *C.char, ptr unsafe.Pointer) C.Sass_Import_List {
+	entries := *(*[]ImportEntry)(ptr)
+	parent := C.GoString(prev)
+	rel := C.GoString(url)
+	list := C.sass_make_import_list(1)
+	hdr := reflect.SliceHeader{
+		Data: uintptr(unsafe.Pointer(list)),
+		Len:  1, Cap: 1,
+	}
+
+	golist := *(*[]C.Sass_Import_Entry)(unsafe.Pointer(&hdr))
+	if body, err := GetEntry(entries, parent, rel); err == nil {
+		ent := C.sass_make_import_entry(url, C.CString(body), nil)
+		cent := (C.Sass_Import_Entry)(ent)
+		golist[0] = cent
+	} else if strings.HasPrefix(rel, "compass") {
+		ent := C.sass_make_import_entry(url, C.CString(""), nil)
+		cent := (C.Sass_Import_Entry)(ent)
+		golist[0] = cent
+	} else {
+		ent := C.sass_make_import_entry(url, nil, nil)
+		cent := (C.Sass_Import_Entry)(ent)
+		golist[0] = cent
+	}
+
+	return list
 }
 
 type SassImportList C.Sass_Import_List

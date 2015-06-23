@@ -23,6 +23,7 @@ import (
 // This binds the header to the libsass header lookup
 func BindHeader(opts SassOptions, entries []ImportEntry) {
 	ptr := unsafe.Pointer(&entries)
+	// FIXME: this should be cleaned up manually later
 	runtime.SetFinalizer(&entries, nil)
 	imper := C.sass_make_importer(
 		C.Sass_Importer_Fn(C.SassHeaders),
