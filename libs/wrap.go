@@ -18,12 +18,13 @@ import "C"
 import "unsafe"
 
 type SassImporter **C.struct_Sass_Importer
+type SassImporterList C.Sass_Importer_List
 
 // SassMakeImporterList maps to C.sass_make_importer_list
-func SassMakeImporterList(gol int) SassImporter {
+func SassMakeImporterList(gol int) SassImporterList {
 	l := C.size_t(gol)
 	cimp := C.sass_make_importer_list(l)
-	return (SassImporter)(cimp)
+	return (SassImporterList)(cimp)
 }
 
 type SassFileContext *C.struct_Sass_File_Context
@@ -35,9 +36,30 @@ func SassMakeFileContext(gos string) SassFileContext {
 	return (SassFileContext)(fctx)
 }
 
+type SassDataContext *C.struct_Sass_Data_Context
+
+func SassMakeDataContext(gos string) SassDataContext {
+	s := C.CString(gos)
+	dctx := C.sass_make_data_context(s)
+	return (SassDataContext)(dctx)
+}
+
+func SassDeleteDataContext(dc SassDataContext) {
+	C.sass_delete_data_context(dc)
+}
+
 type SassOptions *C.struct_Sass_Options
 
 type SassContext *C.struct_Sass_Context
+
+func SassDataContextGetContext(godc SassDataContext) SassContext {
+	opts := C.sass_data_context_get_context(godc)
+	return (SassContext)(opts)
+}
+
+func SassFileContextSetOptions(gofc SassFileContext, goopts SassOptions) {
+	C.sass_file_context_set_options(gofc, goopts)
+}
 
 func SassFileContextGetContext(gofc SassFileContext) SassContext {
 	opts := C.sass_file_context_get_context(gofc)
@@ -47,6 +69,15 @@ func SassFileContextGetContext(gofc SassFileContext) SassContext {
 func SassFileContextGetOptions(gofc SassFileContext) SassOptions {
 	fcopts := C.sass_file_context_get_options(gofc)
 	return (SassOptions)(fcopts)
+}
+
+func SassDataContextGetOptions(godc SassDataContext) SassOptions {
+	dcopts := C.sass_data_context_get_options(godc)
+	return (SassOptions)(dcopts)
+}
+
+func SassDataContextSetOptions(godc SassDataContext, goopts SassOptions) {
+	C.sass_data_context_set_options(godc, goopts)
 }
 
 func SassMakeFileCompiler(gofc SassFileContext) SassCompiler {
@@ -68,7 +99,7 @@ func SassDeleteCompiler(c SassCompiler) {
 	C.sass_delete_compiler(c)
 }
 
-func SassOptionSetCHeaders(gofc SassOptions, goimp SassImporter) {
+func SassOptionSetCHeaders(gofc SassOptions, goimp SassImporterList) {
 	C.sass_option_set_c_headers(gofc, goimp)
 }
 
@@ -86,4 +117,36 @@ func SassContextGetErrorJSON(goctx SassContext) string {
 
 func SassContextGetErrorStatus(goctx SassContext) int {
 	return int(C.sass_context_get_error_status(goctx))
+}
+
+func SassOptionSetPrecision(goopts SassOptions, i int) {
+	C.sass_option_set_precision(goopts, C.int(i))
+}
+
+func SassOptionSetOutputStyle(goopts SassOptions, i int) {
+	C.sass_option_set_output_style(goopts, uint32(i))
+}
+
+func SassOptionSetSourceComments() {
+
+}
+
+func SassOptionSetSourceMapEmbed() {
+
+}
+
+func SassOptionSetSourceMapContents() {
+
+}
+
+func SassOptionSetOmitSourceMapURL() {
+
+}
+
+func SassOptionSetCImporters(goopts SassOptions, golst SassImporterList) {
+	C.sass_option_set_c_importers(goopts, golst)
+}
+
+func SassOptionSetCFunctions() {
+
 }
