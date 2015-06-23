@@ -2,3 +2,8 @@ machine:
   environment:
     CC: gcc
     CXX: g++
+test:
+  pre:
+    - go build -i -tags dev
+  override:
+    - go test -tags dev ./...
