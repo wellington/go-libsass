@@ -15,32 +15,39 @@ package context
 import "C"
 
 import (
-	"reflect"
 	"sync"
-	"unsafe"
+
+	"github.com/wellington/go-libsass/libs"
 )
 
-func (ctx *Context) SetHeaders(opts *C.struct_Sass_Options) {
+func (ctx *Context) SetHeaders(opts libs.SassOptions) {
 	// Push the headers into the local array
 	for _, gh := range globalHeaders {
 		ctx.Headers.Add(gh)
 	}
 
-	cheads := C.sass_make_importer_list(1)
-	hdr := reflect.SliceHeader{
-		Data: uintptr(unsafe.Pointer(cheads)),
-		Len:  1, Cap: 1,
-	}
-	goheads := *(*[]C.Sass_Importer_Entry)(unsafe.Pointer(&hdr))
+	goheads := libs.SassMakeImporterList(1)
+	goimper, _ := libs.SassMakeImporter(
+		libs.SassImporterFN(C.SassHeaders),
+		0, ctx)
+	libs.SassImporterSetListEntry(goheads, 0, goimper)
+	libs.SassOptionSetCHeaders(opts, goheads)
 
-	imper := C.sass_make_importer(
-		C.Sass_Importer_Fn(C.SassHeaders),
-		C.double(0),
-		unsafe.Pointer(ctx))
+	// cheads := C.sass_make_importer_list(1)
+	// hdr := reflect.SliceHeader{
+	// 	Data: uintptr(unsafe.Pointer(cheads)),
+	// 	Len:  1, Cap: 1,
+	// }
+	// goheads := *(*[]C.Sass_Importer_Entry)(unsafe.Pointer(&hdr))
 
-	goheads[0] = imper
+	// imper := C.sass_make_importer(
+	// 	C.Sass_Importer_Fn(C.SassHeaders),
+	// 	C.double(0),
+	// 	unsafe.Pointer(ctx))
 
-	C.sass_option_set_c_headers(opts, cheads)
+	// goheads[0] = imper
+	// copts := (*C.struct_Sass_Options)(unsafe.Pointer(opts))
+	// C.sass_option_set_c_headers(copts, cheads)
 }
 
 type Header struct {

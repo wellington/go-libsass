@@ -162,6 +162,11 @@ func SassImporterGetFunction(goimp SassImporter) SassImporterFN {
 	return (SassImporterFN)(impfn)
 }
 
+func SassMakeOptions() SassOptions {
+	opts := C.sass_make_options()
+	return (SassOptions)(opts)
+}
+
 func SassImporterGetListEntry() {}
 
 func SassMakeImporter(fn SassImporterFN, priority int, v interface{}) (SassImporter, error) {

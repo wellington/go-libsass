@@ -90,16 +90,16 @@ func NewContext() *Context {
 	return &c
 }
 
-type SassOptions C.struct_Sass_Options
+type OldSassOptions C.struct_Sass_Options
 
-func NewSassOptions() *SassOptions {
+func NewSassOptions() *OldSassOptions {
 	copts := C.sass_make_options()
-	return (*SassOptions)(copts)
+	return (*OldSassOptions)(copts)
 }
 
 // Init validates options in the struct and returns a Sass Options.
-func (ctx *Context) Init(goopts *SassOptions) *C.struct_Sass_Options {
-	opts := (*C.struct_Sass_Options)(goopts)
+func (ctx *Context) Init(goopts libs.SassOptions) *C.struct_Sass_Options {
+	opts := (*C.struct_Sass_Options)(unsafe.Pointer(goopts))
 	if ctx.Precision == 0 {
 		ctx.Precision = 5
 	}
@@ -114,7 +114,7 @@ func (ctx *Context) Init(goopts *SassOptions) *C.struct_Sass_Options {
 	}()
 	Mixins(ctx)
 	gopts := (libs.SassOptions)(unsafe.Pointer(opts))
-	ctx.SetHeaders(opts)
+	ctx.SetHeaders(gopts)
 	ctx.SetImporter(gopts)
 	ctx.SetIncludePaths(opts)
 	ctx.SetFunc(opts)
@@ -150,8 +150,8 @@ func (c *Context) FileCompile(path string, out io.Writer) error {
 	cpath := C.CString(path)
 	fc := C.sass_make_file_context(cpath)
 	defer C.sass_delete_file_context(fc)
-	fcopts := C.sass_file_context_get_options(fc)
-	goopts := (*SassOptions)(fcopts)
+	gofc := (libs.SassFileContext)(unsafe.Pointer(fc))
+	goopts := libs.SassFileContextGetOptions(gofc)
 	opts := c.Init(goopts)
 	//os.PathListSeparator
 	incs := strings.Join(c.IncludePaths, string(os.PathListSeparator))
@@ -197,8 +197,9 @@ func (ctx *Context) Compile(in io.Reader, out io.Writer) error {
 	dc := C.sass_make_data_context(src)
 	defer C.sass_delete_data_context(dc)
 
-	options := C.sass_data_context_get_options(dc)
-	opts := ctx.Init((*SassOptions)(options))
+	godc := (libs.SassDataContext)(unsafe.Pointer(dc))
+	goopts := libs.SassDataContextGetOptions(godc)
+	opts := ctx.Init(goopts)
 
 	// TODO: Manually free options memory without throwing
 	// malloc errors
