@@ -7,7 +7,7 @@ package context
 //
 // extern struct Sass_Import** ImporterBridge(const char* url, const char* prev, void* cookie);
 //
-// Sass_Import_List SassImporter(const char* cur_path, Sass_Importer_Entry cb, struct Sass_Compiler* comp)
+// Sass_Import_List SassImporterHandler(const char* cur_path, Sass_Importer_Entry cb, struct Sass_Compiler* comp)
 // {
 //   void* cookie = sass_importer_get_cookie(cb);
 //   struct Sass_Import* previous = sass_compiler_get_last_import(comp);
@@ -27,14 +27,11 @@ import "C"
 import (
 	"errors"
 	"io"
-	"reflect"
 	"sync"
 	"time"
-	"unsafe"
-)
 
-// SassImport wraps Sass_Import libsass struct
-type SassImport C.struct_Sass_Import
+	"github.com/wellington/go-libsass/libs"
+)
 
 // MaxSizeT is safe way of specifying size_t = -1
 var MaxSizeT = C.max_size
@@ -117,19 +114,12 @@ func (p *Imports) Len() int {
 }
 
 // SetImporter enables custom importer in libsass
-func (ctx *Context) SetImporter(opts *C.struct_Sass_Options) {
+func (ctx *Context) SetImporter(opts libs.SassOptions) {
 
-	imps := C.sass_make_importer_list(1)
-	hdr := reflect.SliceHeader{
-		Data: uintptr(unsafe.Pointer(imps)),
-		Len:  1, Cap: 1,
-	}
-	goimps := *(*[]C.Sass_Importer_Entry)(unsafe.Pointer(&hdr))
-	p := C.SassImporter
-	imp := C.sass_make_importer(
-		C.Sass_Importer_Fn(p),
-		C.double(0),
-		unsafe.Pointer(ctx))
-	goimps[0] = imp
-	C.sass_option_set_c_importers(opts, imps)
+	ggoimps := libs.SassMakeImporterList(1)
+	goimp, _ := libs.SassMakeImporter(
+		libs.SassImporterFN(C.SassImporterHandler), 0, ctx)
+	libs.SassImporterSetListEntry(ggoimps, 0, goimp)
+	libs.SassOptionSetCImporters(opts, ggoimps)
+
 }

@@ -15,7 +15,11 @@ package libs
 // #cgo LDFLAGS: -lsass -lstdc++ -ldl -lm
 // #include "sass_context.h"
 import "C"
-import "unsafe"
+import (
+	"errors"
+	"reflect"
+	"unsafe"
+)
 
 type SassImporter *C.struct_Sass_Importer
 type SassImporterList C.Sass_Importer_List
@@ -143,8 +147,6 @@ func SassOptionSetOmitSourceMapURL() {
 
 }
 
-func SassMakeImporter() {}
-
 type SassImportEntry C.Sass_Import_Entry
 
 func SassMakeImport(path string, base string, source string, srcmap string) SassImportEntry {
@@ -161,6 +163,20 @@ func SassImporterGetFunction(goimp SassImporter) SassImporterFN {
 }
 
 func SassImporterGetListEntry() {}
+
+func SassMakeImporter(fn SassImporterFN, priority int, v interface{}) (SassImporter, error) {
+	vv := reflect.ValueOf(v).Elem()
+	if !vv.CanAddr() {
+		return nil, errors.New("can not take address of")
+	}
+	// TODO: this will leak memory, the interface must be freed manually
+	lst := C.sass_make_importer(fn, C.double(priority), unsafe.Pointer(vv.Addr().Pointer()))
+	return (SassImporter)(lst), nil
+}
+
+func SassImporterSetListEntry(golst SassImporterList, idx int, ent SassImporter) {
+	C.sass_importer_set_list_entry(golst, C.size_t(idx), ent)
+}
 
 func SassOptionSetCImporters(goopts SassOptions, golst SassImporterList) {
 	C.sass_option_set_c_importers(goopts, golst)

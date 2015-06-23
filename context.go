@@ -16,6 +16,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/wellington/go-libsass/libs"
 	"github.com/wellington/spritewell"
 
 	"unsafe"
@@ -112,8 +113,9 @@ func (ctx *Context) Init(goopts *SassOptions) *C.struct_Sass_Options {
 		// C.sass_delete_data_context(dc)
 	}()
 	Mixins(ctx)
+	gopts := (libs.SassOptions)(unsafe.Pointer(opts))
 	ctx.SetHeaders(opts)
-	ctx.SetImporter(opts)
+	ctx.SetImporter(gopts)
 	ctx.SetIncludePaths(opts)
 	ctx.SetFunc(opts)
 
@@ -170,13 +172,6 @@ func (c *Context) FileCompile(path string, out io.Writer) error {
 		return err
 	}
 	if c.error() != "" {
-		/*lines := bytes.Split(bs, []byte("\n"))
-		var out string
-		for i := -7; i < 7; i++ {
-			if i+c.Errors.Line >= 0 && i+c.Errors.Line < len(lines) {
-				out += fmt.Sprintf("%s\n", string(lines[i+c.Errors.Line]))
-			}
-		}
 		// TODO: this is weird, make something more idiomatic*/
 		return errors.New(c.error())
 	}
