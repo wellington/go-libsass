@@ -17,7 +17,7 @@ package libs
 import "C"
 import "unsafe"
 
-type SassImporter **C.struct_Sass_Importer
+type SassImporter *C.struct_Sass_Importer
 type SassImporterList C.Sass_Importer_List
 
 // SassMakeImporterList maps to C.sass_make_importer_list
@@ -142,6 +142,25 @@ func SassOptionSetSourceMapContents() {
 func SassOptionSetOmitSourceMapURL() {
 
 }
+
+func SassMakeImporter() {}
+
+type SassImportEntry C.Sass_Import_Entry
+
+func SassMakeImport(path string, base string, source string, srcmap string) SassImportEntry {
+	impent := C.sass_make_import(C.CString(path), C.CString(base),
+		C.CString(source), C.CString(srcmap))
+	return (SassImportEntry)(impent)
+}
+
+type SassImporterFN C.Sass_Importer_Fn
+
+func SassImporterGetFunction(goimp SassImporter) SassImporterFN {
+	impfn := C.sass_importer_get_function(goimp)
+	return (SassImporterFN)(impfn)
+}
+
+func SassImporterGetListEntry() {}
 
 func SassOptionSetCImporters(goopts SassOptions, golst SassImporterList) {
 	C.sass_option_set_c_importers(goopts, golst)
