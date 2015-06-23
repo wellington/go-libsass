@@ -8,6 +8,9 @@ package libs
 //
 // #include "sass_context.h"
 
+// extern struct Sass_Import** HeaderBridge(void* cookie);
+//
+//
 // #//for C.free
 // #include "stdlib.h"
 //
@@ -30,6 +33,43 @@ func SassMakeImporterList(gol int) SassImporterList {
 	cimp := C.sass_make_importer_list(l)
 	return (SassImporterList)(cimp)
 }
+
+type ImportEntry struct {
+	Path   string
+	Source string
+	SrcMap string
+}
+
+type ImportList []ImportEntry
+
+//export HeaderBridge
+func HeaderBridge(ptr unsafe.Pointer) C.Sass_Import_List {
+	entries := *(*[]ImportEntry)(ptr)
+
+	cents := C.sass_make_import_list(C.size_t(len(entries)))
+
+	hdr := reflect.SliceHeader{
+		Data: uintptr(unsafe.Pointer(cents)),
+		Len:  len(entries), Cap: len(entries),
+	}
+	goents := *(*[]C.Sass_Import_Entry)(unsafe.Pointer(&hdr))
+
+	for i, ent := range entries {
+		// Each entry needs a unique name
+		cent := C.sass_make_import_entry(
+			C.CString(ent.Path),
+			C.CString(ent.Source),
+			C.CString(ent.SrcMap))
+		// There is a function for modifying an import list, but a proper
+		// slice might be more useful.
+		// C.sass_import_set_list_entry(cents, C.size_t(i), cent)
+		goents[i] = cent
+	}
+
+	return cents
+}
+
+type SassImportList C.Sass_Import_List
 
 type SassFileContext *C.struct_Sass_File_Context
 

@@ -12,9 +12,11 @@ package context
 //   return list;
 // }
 //
+
 import "C"
 
 import (
+	"strconv"
 	"sync"
 
 	"github.com/wellington/go-libsass/libs"
@@ -26,28 +28,19 @@ func (ctx *Context) SetHeaders(opts libs.SassOptions) {
 		ctx.Headers.Add(gh)
 	}
 
-	goheads := libs.SassMakeImporterList(1)
-	goimper, _ := libs.SassMakeImporter(
-		libs.SassImporterFN(C.SassHeaders),
-		0, ctx)
-	libs.SassImporterSetListEntry(goheads, 0, goimper)
-	libs.SassOptionSetCHeaders(opts, goheads)
-
-	// cheads := C.sass_make_importer_list(1)
-	// hdr := reflect.SliceHeader{
-	// 	Data: uintptr(unsafe.Pointer(cheads)),
-	// 	Len:  1, Cap: 1,
-	// }
-	// goheads := *(*[]C.Sass_Importer_Entry)(unsafe.Pointer(&hdr))
-
-	// imper := C.sass_make_importer(
-	// 	C.Sass_Importer_Fn(C.SassHeaders),
-	// 	C.double(0),
-	// 	unsafe.Pointer(ctx))
-
-	// goheads[0] = imper
-	// copts := (*C.struct_Sass_Options)(unsafe.Pointer(opts))
-	// C.sass_option_set_c_headers(copts, cheads)
+	// Loop through headers creating ImportEntry
+	entries := make([]libs.ImportEntry, ctx.Headers.Len())
+	for i, ent := range ctx.Headers.h {
+		uniquename := "hdr" + strconv.FormatInt(int64(i), 10)
+		entries[i] = libs.ImportEntry{
+			// Each entry requires a unique identifier
+			// https://github.com/sass/libsass/issues/1292
+			uniquename,
+			ent.Content,
+			"",
+		}
+	}
+	libs.BindHeader(opts, entries)
 }
 
 type Header struct {

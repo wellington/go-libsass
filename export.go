@@ -26,38 +26,6 @@ func GoBridge(cargs UnionSassValue, ptr unsafe.Pointer) UnionSassValue {
 	return usv
 }
 
-// HeaderBridge is called by libsass to find available custom headers
-//
-//export HeaderBridge
-func HeaderBridge(ptr unsafe.Pointer) C.Sass_Import_List {
-
-	ctx := (*Context)(ptr)
-	list := C.sass_make_import_list(C.size_t(1))
-	hdr := reflect.SliceHeader{
-		Data: uintptr(unsafe.Pointer(list)),
-		Len:  1,
-	}
-	golist := *(*[]C.Sass_Import_Entry)(unsafe.Pointer(&hdr))
-
-	// Evidently setting multiple headers does not work, concat all
-	// and return a single entry
-
-	var contents string
-
-	for _, head := range ctx.Headers.h {
-		contents += head.Content + "\n"
-	}
-
-	ent := C.sass_make_import_entry(
-		nil,
-		C.CString(contents),
-		nil)
-	cent := (C.Sass_Import_Entry)(ent)
-	golist[0] = cent
-
-	return list
-}
-
 // ImporterBridge is called by C to pass Importer arguments into Go land. A
 // Sass_Import is returned for libsass to resolve.
 //
