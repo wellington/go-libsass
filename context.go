@@ -103,7 +103,6 @@ func (ctx *Context) Init(goopts libs.SassOptions) *C.struct_Sass_Options {
 	if ctx.Precision == 0 {
 		ctx.Precision = 5
 	}
-	cmt := C.bool(ctx.Comments)
 	imgpath := C.CString(ctx.ImageDir)
 
 	defer func() {
@@ -121,7 +120,7 @@ func (ctx *Context) Init(goopts libs.SassOptions) *C.struct_Sass_Options {
 	// C.sass_option_set_precision(opts, prec)
 	libs.SassOptionSetPrecision(goopts, ctx.Precision)
 	libs.SassOptionSetOutputStyle(goopts, ctx.OutputStyle)
-	C.sass_option_set_source_comments(opts, cmt)
+	libs.SassOptionSetSourceComments(goopts, ctx.Comments)
 	return opts
 }
 

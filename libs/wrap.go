@@ -212,8 +212,8 @@ func SassOptionSetOutputStyle(goopts SassOptions, i int) {
 	C.sass_option_set_output_style(goopts, uint32(i))
 }
 
-func SassOptionSetSourceComments() {
-
+func SassOptionSetSourceComments(goopts SassOptions, b bool) {
+	C.sass_option_set_source_comments(goopts, C.bool(b))
 }
 
 func SassOptionSetSourceMapEmbed() {

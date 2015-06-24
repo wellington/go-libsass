@@ -91,3 +91,40 @@ func TestOption_style(t *testing.T) {
 	}
 
 }
+
+func TestOption_comment(t *testing.T) {
+	in := bytes.NewBufferString(`div { p { color: red; } }`)
+
+	var out bytes.Buffer
+	ctx := Context{
+		Comments: false,
+	}
+	err := ctx.Compile(in, &out)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	e := `div p {
+  color: red; }
+`
+	if e != out.String() {
+		t.Errorf("got:\n%s\nwanted:\n%s\n", out.String(), e)
+	}
+
+	in = bytes.NewBufferString(`div { p { color: red; } }`)
+	out.Reset()
+	ctx.Comments = true
+	err = ctx.Compile(in, &out)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	e = `/* line 1, stdin */
+div p {
+  color: red; }
+`
+	if e != out.String() {
+		t.Errorf("got:\n%s\nwanted:\n%s\n", out.String(), e)
+	}
+
+}
