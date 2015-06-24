@@ -21,7 +21,7 @@ func TestFunc_simpletypes(t *testing.T) {
 
 	ctx.Cookies[0] = Cookie{
 		Sign: "foo($null, $num, $str, $bool, $color)",
-		Fn: func(c *Context, usv UnionSassValue, rsv *UnionSassValue) error {
+		Fn: func(v interface{}, usv UnionSassValue, rsv *UnionSassValue) error {
 			// Send the interface fn arguments to the ch channel
 
 			var n interface{}
@@ -75,7 +75,7 @@ func TestFunc_complextypes(t *testing.T) {
 	ch := make(chan interface{}, 1)
 	ctx.Cookies[0] = Cookie{
 		Sign: "foo($list)",
-		Fn: func(c *Context, usv UnionSassValue, rsv *UnionSassValue) error {
+		Fn: func(v interface{}, usv UnionSassValue, rsv *UnionSassValue) error {
 			var sv interface{}
 			Unmarshal(usv, &sv)
 			ch <- sv

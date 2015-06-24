@@ -144,7 +144,7 @@ func ExampleContext_Compile() {
 		ctx.Cookies = make([]Cookie, 1)
 	}
 	ctx.Cookies[0] = Cookie{
-		"foo()", func(c *Context, usv UnionSassValue, rsv *UnionSassValue) error {
+		"foo()", func(v interface{}, usv UnionSassValue, rsv *UnionSassValue) error {
 			res, _ := Marshal("no-repeat")
 			*rsv = res
 			return nil

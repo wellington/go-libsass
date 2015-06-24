@@ -28,7 +28,7 @@ func TestSampleCB(t *testing.T) {
 func TestRegisterHandler(t *testing.T) {
 	l := len(handlers)
 	RegisterHandler("foo",
-		func(c *Context, csv UnionSassValue, rsv *UnionSassValue) error {
+		func(v interface{}, csv UnionSassValue, rsv *UnionSassValue) error {
 			u, _ := Marshal(false)
 			*rsv = u
 			return nil

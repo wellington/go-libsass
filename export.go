@@ -27,7 +27,7 @@ func GoBridge(cargs UnionSassValue, ptr unsafe.Pointer) UnionSassValue {
 }
 
 // SampleCB example how a callback is defined
-func SampleCB(ctx *Context, usv UnionSassValue, rsv *UnionSassValue) error {
+func SampleCB(v interface{}, usv UnionSassValue, rsv *UnionSassValue) error {
 	var sv []interface{}
 	Unmarshal(usv, &sv)
 	*rsv = C.sass_make_boolean(false)
@@ -45,7 +45,7 @@ func Warn(s string) UnionSassValue {
 }
 
 // WarnHandler captures Sass warnings and redirects to stdout
-func WarnHandler(ctx *Context, csv UnionSassValue, rsv *UnionSassValue) error {
+func WarnHandler(v interface{}, csv UnionSassValue, rsv *UnionSassValue) error {
 	var s string
 	Unmarshal(csv, &s)
 	log.Println("WARNING: " + s)
