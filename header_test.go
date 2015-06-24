@@ -20,6 +20,9 @@ func TestSassHeader_single(t *testing.T) {
 
 	err := ctx.Compile(in, &out)
 	if err != nil {
+		for _, h := range ctx.Headers.h {
+			t.Logf("% #v\n", h)
+		}
 		t.Fatal(err)
 	}
 	e := `div {

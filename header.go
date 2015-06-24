@@ -10,7 +10,9 @@ import (
 func (ctx *Context) SetHeaders(opts libs.SassOptions) {
 	// Push the headers into the local array
 	for _, gh := range globalHeaders {
-		ctx.Headers.Add(gh)
+		if !ctx.Headers.Has(gh) {
+			ctx.Headers.Add(gh)
+		}
 	}
 
 	// Loop through headers creating ImportEntry
@@ -44,6 +46,15 @@ func (h *Headers) Add(s string) {
 	h.h = append(h.h, Header{
 		Content: s,
 	})
+}
+
+func (h *Headers) Has(s string) bool {
+	for _, c := range h.h {
+		if s == c.Content {
+			return true
+		}
+	}
+	return false
 }
 
 func (h *Headers) Len() int {
