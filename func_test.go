@@ -74,14 +74,16 @@ func TestFunc_complextypes(t *testing.T) {
 	}
 	ch := make(chan interface{}, 1)
 	ctx.Cookies[0] = Cookie{
-		"foo($list)", func(c *Context, usv UnionSassValue, rsv *UnionSassValue) error {
+		Sign: "foo($list)",
+		Fn: func(c *Context, usv UnionSassValue, rsv *UnionSassValue) error {
 			var sv interface{}
 			Unmarshal(usv, &sv)
 			ch <- sv
 			res, _ := Marshal(false)
 			*rsv = res
 			return nil
-		}, &ctx,
+		},
+		Ctx: &ctx,
 	}
 	err := ctx.Compile(in, &out)
 	if err != nil {
@@ -118,7 +120,9 @@ func TestFunc_customarity(t *testing.T) {
 	}
 
 	ctx.Cookies[0] = Cookie{
-		"foo()", SampleCB, &ctx,
+		Sign: "foo()",
+		Fn:   SampleCB,
+		Ctx:  &ctx,
 	}
 	err := ctx.Compile(in, &out)
 	if err == nil {

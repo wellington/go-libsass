@@ -49,12 +49,16 @@ func (ctx *Context) SetFunc(opts *C.struct_Sass_Options) {
 	// Append registered handlers to cookie array
 	for i, h := range handlers {
 		cookies[i] = Cookie{
-			h.sign, h.callback, ctx,
+			Sign: h.sign,
+			Fn:   h.callback,
+			Ctx:  ctx,
 		}
 	}
 	for i, h := range ctx.Cookies {
 		cookies[i+len(handlers)] = Cookie{
-			h.Sign, h.Fn, ctx,
+			Sign: h.Sign,
+			Fn:   h.Fn,
+			Ctx:  ctx,
 		}
 	}
 	ctx.Cookies = cookies
