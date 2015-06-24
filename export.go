@@ -10,47 +10,36 @@ package context
 import "C"
 import (
 	"log"
-	"unsafe"
+
+	"github.com/wellington/go-libsass/libs"
 )
 
-// GoBridge is exported to C for linking libsass to Go.  This function
-// adheres to the interface provided by libsass.
-//
-//export GoBridge
-func GoBridge(cargs UnionSassValue, ptr unsafe.Pointer) UnionSassValue {
-	// Recover the Cookie struct passed in
-	ck := *(*Cookie)(ptr)
-	var usv UnionSassValue
-	err := ck.Fn(ck.Ctx, cargs, &usv)
-	_ = err
-	return usv
-}
-
 // SampleCB example how a callback is defined
-func SampleCB(v interface{}, usv UnionSassValue, rsv *UnionSassValue) error {
+func SampleCB(v interface{}, usv libs.UnionSassValue, rsv *libs.UnionSassValue) error {
 	var sv []interface{}
-	Unmarshal(usv, &sv)
-	*rsv = C.sass_make_boolean(false)
+	libs.Unmarshal(usv, &sv)
+	*rsv = libs.SassMakeBoolean(false)
 	return nil
 }
 
 // Error takes a Go error and returns a libsass Error
-func Error(err error) UnionSassValue {
-	return C.sass_make_error(C.CString(err.Error()))
+func Error(err error) libs.UnionSassValue {
+	return libs.SassMakeError(err.Error())
 }
 
 // Warn takes a string and causes a warning in libsass
-func Warn(s string) UnionSassValue {
-	return C.sass_make_warning(C.CString(s))
+func Warn(s string) libs.UnionSassValue {
+	//return C.sass_make_warning(C.CString(s))
+	return libs.SassMakeWarning(s)
 }
 
 // WarnHandler captures Sass warnings and redirects to stdout
-func WarnHandler(v interface{}, csv UnionSassValue, rsv *UnionSassValue) error {
+func WarnHandler(v interface{}, csv libs.UnionSassValue, rsv *libs.UnionSassValue) error {
 	var s string
-	Unmarshal(csv, &s)
+	libs.Unmarshal(csv, &s)
 	log.Println("WARNING: " + s)
 
-	r, _ := Marshal("")
+	r, _ := libs.Marshal("")
 	*rsv = r
 	return nil
 }

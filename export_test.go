@@ -1,22 +1,26 @@
 package context
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/wellington/go-libsass/libs"
+)
 
 func TestSampleCB(t *testing.T) {
 	ctx := NewContext()
 	ctx.Cookies = make([]Cookie, 1)
-	usv, err := Marshal(float64(1))
+	usv, err := libs.Marshal(float64(1))
 	if err != nil {
 		t.Error(err)
 	}
-	var rsv UnionSassValue
+	var rsv libs.UnionSassValue
 	err = SampleCB(ctx, usv, &rsv)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	var b bool
-	err = Unmarshal(rsv, &b)
+	err = libs.Unmarshal(rsv, &b)
 	if err != nil {
 		t.Error(err)
 	}
@@ -28,8 +32,8 @@ func TestSampleCB(t *testing.T) {
 func TestRegisterHandler(t *testing.T) {
 	l := len(handlers)
 	RegisterHandler("foo",
-		func(v interface{}, csv UnionSassValue, rsv *UnionSassValue) error {
-			u, _ := Marshal(false)
+		func(v interface{}, csv libs.UnionSassValue, rsv *libs.UnionSassValue) error {
+			u, _ := libs.Marshal(false)
 			*rsv = u
 			return nil
 		})

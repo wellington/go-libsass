@@ -6,6 +6,8 @@ import (
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/wellington/go-libsass/libs"
 )
 
 func TestFunc_simpletypes(t *testing.T) {
@@ -20,19 +22,20 @@ func TestFunc_simpletypes(t *testing.T) {
 	ch := make(chan []interface{}, 1)
 
 	ctx.Cookies[0] = Cookie{
+
 		Sign: "foo($null, $num, $str, $bool, $color)",
-		Fn: func(v interface{}, usv UnionSassValue, rsv *UnionSassValue) error {
+		Fn: func(v interface{}, usv libs.UnionSassValue, rsv *libs.UnionSassValue) error {
 			// Send the interface fn arguments to the ch channel
 
 			var n interface{}
-			var num SassNumber
+			var num libs.SassNumber
 			var s string
 			var b bool
 			var col = color.RGBA{}
 			var intf = []interface{}{n, num, s, b, col}
-			Unmarshal(usv, &intf)
+			libs.Unmarshal(usv, &intf)
 			ch <- intf
-			res, _ := Marshal(false)
+			res, _ := libs.Marshal(false)
 			*rsv = res
 			return nil
 		},
@@ -46,7 +49,7 @@ func TestFunc_simpletypes(t *testing.T) {
 
 	e := []interface{}{
 		"<nil>",
-		SassNumber{3.0, "px"},
+		libs.SassNumber{3.0, "px"},
 		"asdf",
 		false,
 		color.RGBA{R: 0x0, G: 0x55, B: 0x0, A: 0x1},
@@ -75,11 +78,11 @@ func TestFunc_complextypes(t *testing.T) {
 	ch := make(chan interface{}, 1)
 	ctx.Cookies[0] = Cookie{
 		Sign: "foo($list)",
-		Fn: func(v interface{}, usv UnionSassValue, rsv *UnionSassValue) error {
+		Fn: func(v interface{}, usv libs.UnionSassValue, rsv *libs.UnionSassValue) error {
 			var sv interface{}
-			Unmarshal(usv, &sv)
+			libs.Unmarshal(usv, &sv)
 			ch <- sv
-			res, _ := Marshal(false)
+			res, _ := libs.Marshal(false)
 			*rsv = res
 			return nil
 		},
@@ -93,7 +96,7 @@ func TestFunc_complextypes(t *testing.T) {
 	e := []interface{}{
 		"a",
 		"b",
-		SassNumber{1, "mm"},
+		libs.SassNumber{1, "mm"},
 		color.RGBA{R: 0x0, G: 0x33, B: 0x0, A: 0x1},
 	}
 	var args interface{}

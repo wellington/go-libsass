@@ -275,3 +275,16 @@ func SassOptionSetCImporters(goopts SassOptions, golst SassImporterList) {
 func SassOptionSetCFunctions() {
 
 }
+
+func SassMakeBoolean(b bool) UnionSassValue {
+	cb := C.bool(b)
+	return C.sass_make_boolean(cb)
+}
+
+func SassMakeError(s string) UnionSassValue {
+	return C.sass_make_error(C.CString(s))
+}
+
+func SassMakeWarning(s string) UnionSassValue {
+	return C.sass_make_warning(C.CString(s))
+}

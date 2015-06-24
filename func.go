@@ -3,36 +3,27 @@ package context
 // #include <stdlib.h>
 // #include "sass_context.h"
 //
-// extern union Sass_Value* GoBridge( union Sass_Value* s_args, void* cookie);
-//
-// union Sass_Value* CallSassFunction( union Sass_Value* s_args, Sass_Function_Entry cb, struct Sass_Options* opts ) {
-//     void* cookie = sass_function_get_cookie(cb);
-//     return GoBridge(s_args, cookie);
-// }
-//
 import "C"
 
 import (
 	"reflect"
 	"unsafe"
-)
 
-// SassCallback defines the callback libsass eventually executes in
-// sprite_sass
-type SassCallback func(v interface{}, csv UnionSassValue, rsv *UnionSassValue) error
+	"github.com/wellington/go-libsass/libs"
+)
 
 // Cookie is used for passing context information to libsass.  Cookie is
 // passed to custom handlers when libsass executes them through the go
 // bridge.
 type Cookie struct {
 	Sign string
-	Fn   SassCallback
+	Fn   libs.SassCallback
 	Ctx  interface{}
 }
 
 type handler struct {
 	sign     string
-	callback SassCallback
+	callback libs.SassCallback
 }
 
 // handlers is the list of registered sass handlers
@@ -40,7 +31,7 @@ var handlers []handler
 
 // RegisterHandler sets the passed signature and callback to the
 // handlers array.
-func RegisterHandler(sign string, callback SassCallback) {
+func RegisterHandler(sign string, callback libs.SassCallback) {
 	handlers = append(handlers, handler{sign, callback})
 }
 
@@ -72,22 +63,15 @@ func (ctx *Context) SetFunc(opts *C.struct_Sass_Options) {
 		Data: uintptr(unsafe.Pointer(fns)),
 		Len:  length, Cap: length,
 	}
-
-	gofns := *(*[]C.Sass_Function_Entry)(unsafe.Pointer(&hdr))
+	_ = hdr
+	//gofns := *(*[]C.Sass_Function_Entry)(unsafe.Pointer(&hdr))
+	gofns := make([]libs.SassFunc, len(ctx.Cookies))
 	for i, cookie := range ctx.Cookies {
-		sign := C.CString(cookie.Sign)
-
-		fn := C.sass_make_function(
-			// sass signature
-			sign,
-			// C bridge
-			C.Sass_Function_Fn(C.CallSassFunction),
-			// Only pass reference to global array, so
-			// GC won't clean it up.
-			unsafe.Pointer(&ctx.Cookies[i]))
-
+		fn := libs.SassMakeFunction(cookie.Sign, unsafe.Pointer(&ctx.Cookies[i]))
 		gofns[i] = fn
 	}
-	C.sass_option_set_c_functions(opts, (C.Sass_Function_List)(unsafe.Pointer(&gofns[0])))
+	goopts := (libs.SassOptions)(unsafe.Pointer(opts))
+	libs.BindFuncs(goopts, gofns)
+	// C.sass_option_set_c_functions(opts, (C.Sass_Function_List)(unsafe.Pointer(&gofns[0])))
 
 }

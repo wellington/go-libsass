@@ -6,6 +6,8 @@ import (
 	"os"
 	"regexp"
 	"testing"
+
+	"github.com/wellington/go-libsass/libs"
 )
 
 var rerandom *regexp.Regexp
@@ -144,8 +146,8 @@ func ExampleContext_Compile() {
 		ctx.Cookies = make([]Cookie, 1)
 	}
 	ctx.Cookies[0] = Cookie{
-		"foo()", func(v interface{}, usv UnionSassValue, rsv *UnionSassValue) error {
-			res, _ := Marshal("no-repeat")
+		"foo()", func(v interface{}, usv libs.UnionSassValue, rsv *libs.UnionSassValue) error {
+			res, _ := libs.Marshal("no-repeat")
 			*rsv = res
 			return nil
 		}, &ctx,
