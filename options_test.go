@@ -128,3 +128,24 @@ div p {
 	}
 
 }
+
+func TestOption_include(t *testing.T) {
+	in := bytes.NewBufferString(`@import "include";`)
+
+	var out bytes.Buffer
+	ctx := Context{
+		IncludePaths: []string{"test/scss"},
+	}
+	err := ctx.Compile(in, &out)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	e := `a {
+  color: blue; }
+`
+	if e != out.String() {
+		t.Errorf("got:\n%s\nwanted:\n%s\n", out.String(), e)
+	}
+
+}
