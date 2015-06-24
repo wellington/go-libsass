@@ -216,6 +216,10 @@ func SassOptionSetSourceComments(goopts SassOptions, b bool) {
 	C.sass_option_set_source_comments(goopts, C.bool(b))
 }
 
+func SassOptionSetIncludePath(goopts SassOptions, path string) {
+	C.sass_option_set_include_path(goopts, C.CString(path))
+}
+
 func SassOptionSetSourceMapEmbed() {
 
 }
