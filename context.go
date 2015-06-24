@@ -13,7 +13,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"reflect"
 	"strings"
 
 	"github.com/wellington/go-libsass/libs"
@@ -124,21 +123,6 @@ func (ctx *Context) Init(goopts libs.SassOptions) *C.struct_Sass_Options {
 	return opts
 }
 
-func GetImportList(cctx *C.struct_Sass_Context) []string {
-	len := int(C.sass_context_get_included_files_size(cctx))
-	imps := C.sass_context_get_included_files(cctx)
-	list := make([]string, len, len)
-	hdr := reflect.SliceHeader{
-		Data: uintptr(unsafe.Pointer(imps)),
-		Len:  len, Cap: len,
-	}
-	goimps := *(*[]*C.char)(unsafe.Pointer(&hdr))
-	for i := range goimps {
-		list[i] = C.GoString(goimps[i])
-	}
-	return list
-}
-
 func (c *Context) FileCompile(path string, out io.Writer) error {
 	defer c.Reset()
 	cpath := C.CString(path)
@@ -152,9 +136,10 @@ func (c *Context) FileCompile(path string, out io.Writer) error {
 	C.sass_option_set_include_path(opts, C.CString(incs))
 	C.sass_file_context_set_options(fc, opts)
 	cc := C.sass_file_context_get_context(fc)
+	gocc := (libs.SassContext)(unsafe.Pointer(cc))
 	compiler := C.sass_make_file_compiler(fc)
 	C.sass_compiler_parse(compiler)
-	c.ResolvedImports = GetImportList(cc)
+	c.ResolvedImports = libs.GetImportList(gocc)
 	C.sass_compiler_execute(compiler)
 	defer C.sass_delete_compiler(compiler)
 	cout := C.GoString(C.sass_context_get_output_string(cc))
