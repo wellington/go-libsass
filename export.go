@@ -20,15 +20,18 @@ import (
 func GoBridge(cargs UnionSassValue, ptr unsafe.Pointer) UnionSassValue {
 	// Recover the Cookie struct passed in
 	ck := *(*Cookie)(ptr)
-	usv := ck.Fn(ck.Ctx, cargs)
+	var usv UnionSassValue
+	err := ck.Fn(ck.Ctx, cargs, &usv)
+	_ = err
 	return usv
 }
 
 // SampleCB example how a callback is defined
-func SampleCB(ctx *Context, usv UnionSassValue) UnionSassValue {
+func SampleCB(ctx *Context, usv UnionSassValue, rsv *UnionSassValue) error {
 	var sv []interface{}
 	Unmarshal(usv, &sv)
-	return C.sass_make_boolean(false)
+	*rsv = C.sass_make_boolean(false)
+	return nil
 }
 
 // Error takes a Go error and returns a libsass Error
@@ -42,13 +45,14 @@ func Warn(s string) UnionSassValue {
 }
 
 // WarnHandler captures Sass warnings and redirects to stdout
-func WarnHandler(ctx *Context, csv UnionSassValue) UnionSassValue {
+func WarnHandler(ctx *Context, csv UnionSassValue, rsv *UnionSassValue) error {
 	var s string
 	Unmarshal(csv, &s)
 	log.Println("WARNING: " + s)
 
 	r, _ := Marshal("")
-	return r
+	*rsv = r
+	return nil
 }
 
 func init() {

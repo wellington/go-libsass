@@ -9,10 +9,14 @@ func TestSampleCB(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	usv = SampleCB(ctx, usv)
+	var rsv UnionSassValue
+	err = SampleCB(ctx, usv, &rsv)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	var b bool
-	err = Unmarshal(usv, &b)
+	err = Unmarshal(rsv, &b)
 	if err != nil {
 		t.Error(err)
 	}
@@ -24,9 +28,10 @@ func TestSampleCB(t *testing.T) {
 func TestRegisterHandler(t *testing.T) {
 	l := len(handlers)
 	RegisterHandler("foo",
-		func(c *Context, csv UnionSassValue) UnionSassValue {
+		func(c *Context, csv UnionSassValue, rsv *UnionSassValue) error {
 			u, _ := Marshal(false)
-			return u
+			*rsv = u
+			return nil
 		})
 	if e := l + 1; len(handlers) != e {
 		t.Errorf("got: %d wanted: %d", len(handlers), e)

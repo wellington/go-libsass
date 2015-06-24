@@ -19,7 +19,7 @@ import (
 
 // SassCallback defines the callback libsass eventually executes in
 // sprite_sass
-type SassCallback func(ctx *Context, csv UnionSassValue) UnionSassValue
+type SassCallback func(ctx *Context, csv UnionSassValue, rsv *UnionSassValue) error
 
 // Cookie is used for passing context information to libsass.  Cookie is
 // passed to custom handlers when libsass executes them through the go
@@ -32,7 +32,7 @@ type Cookie struct {
 
 type handler struct {
 	sign     string
-	callback func(ctx *Context, csv UnionSassValue) UnionSassValue
+	callback SassCallback
 }
 
 // handlers is the list of registered sass handlers
@@ -40,8 +40,7 @@ var handlers []handler
 
 // RegisterHandler sets the passed signature and callback to the
 // handlers array.
-func RegisterHandler(sign string,
-	callback func(ctx *Context, csv UnionSassValue) UnionSassValue) {
+func RegisterHandler(sign string, callback SassCallback) {
 	handlers = append(handlers, handler{sign, callback})
 }
 
