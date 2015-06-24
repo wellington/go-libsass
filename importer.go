@@ -1,20 +1,5 @@
 package context
 
-// #include <stdint.h>
-// #include <stdlib.h>
-// #include <string.h>
-// #include <stdio.h>
-// #include "sass_context.h"
-//
-//
-// #ifndef UINTMAX_MAX
-// #  ifdef __UINTMAX_MAX__
-// #    define UINTMAX_MAX __UINTMAX_MAX__
-// #  endif
-// #endif
-//
-// size_t max_size = UINTMAX_MAX;
-import "C"
 import (
 	"errors"
 	"io"
@@ -23,9 +8,6 @@ import (
 
 	"github.com/wellington/go-libsass/libs"
 )
-
-// MaxSizeT is safe way of specifying size_t = -1
-var MaxSizeT = C.max_size
 
 var (
 	ErrImportNotFound = errors.New("Import unreachable or not found")

@@ -1,20 +1,5 @@
 package context
 
-// #include <stdio.h>
-// #include "sass_context.h"
-//
-// extern struct Sass_Import** HeaderBridge(void* cookie);
-//
-// Sass_Import_List SassHeaders(const char* cur_path, Sass_Importer_Entry cb, struct Sass_Compiler* comp)
-// {
-//   void* cookie = sass_importer_get_cookie(cb);
-//   Sass_Import_List list = HeaderBridge(cookie);
-//   return list;
-// }
-//
-
-import "C"
-
 import (
 	"strconv"
 	"sync"
