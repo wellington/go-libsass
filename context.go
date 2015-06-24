@@ -120,6 +120,7 @@ func (ctx *Context) Init(goopts libs.SassOptions) *C.struct_Sass_Options {
 	// prec := C.int(ctx.Precision)
 	// C.sass_option_set_precision(opts, prec)
 	libs.SassOptionSetPrecision(goopts, ctx.Precision)
+	libs.SassOptionSetOutputStyle(goopts, ctx.OutputStyle)
 	C.sass_option_set_source_comments(opts, cmt)
 	return opts
 }
