@@ -1,5 +1,6 @@
 package libs
 
+// #include <stdlib.h>
 // #include "sass_context.h"
 import "C"
 
@@ -28,4 +29,9 @@ func GetImportList(ctx SassContext) []string {
 		list[i] = C.GoString(goimps[i])
 	}
 	return list
+}
+
+func Version() string {
+	s := C.libsass_version()
+	return C.GoString(s)
 }
