@@ -17,8 +17,11 @@ type SassFunc C.Sass_Function_Entry
 
 func SassMakeFunction(signature string, ptr unsafe.Pointer) SassFunc {
 	csign := C.CString(signature)
-
-	fn := C.sass_make_function(csign, C.Sass_Function_Fn(C.CallSassFunction), ptr)
+	ck := *(*Cookie)(ptr)
+	_ = ck
+	fn := C.sass_make_function(csign,
+		C.Sass_Function_Fn(C.CallSassFunction),
+		ptr)
 	return (SassFunc)(fn)
 }
 

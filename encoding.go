@@ -40,23 +40,25 @@ func unmarshal(arg SassValue, v interface{}) error {
 
 	if k == reflect.Interface {
 		switch {
-		default:
-			return errors.New("Uncovertable interface value. Specify type desired.")
-		case libs.SassValueIsNil(arg.Val()):
+		case libs.SassValueIsNil(sv):
 			f.Set(reflect.ValueOf("<nil>"))
 			return nil
-		case libs.SassValueIsString(arg.Val()):
+		case libs.SassValueIsString(sv):
 			k = reflect.String
-		case libs.SassValueIsBool(arg.Val()):
+		case libs.SassValueIsBool(sv):
 			k = reflect.Bool
-		case libs.SassValueIsNumber(arg.Val()):
+		case libs.SassValueIsNumber(sv):
 			k = reflect.Struct
-		case libs.SassValueIsList(arg.Val()):
+		case libs.SassValueIsList(sv):
 			k = reflect.Slice
 			t = reflect.SliceOf(t)
-		case libs.SassValueIsError(arg.Val()):
+		case libs.SassValueIsError(sv):
 			// This should get implemented as type error
 			k = reflect.String
+		case libs.SassValueIsColor(sv):
+			k = reflect.Struct
+		default:
+			return errors.New("Uncovertable interface value.")
 		}
 	}
 
@@ -125,7 +127,6 @@ func unmarshal(arg SassValue, v interface{}) error {
 			newv := reflect.MakeSlice(t, l, l)
 			infs := make([]interface{}, l)
 			for i := range infs {
-				//val := C.sass_list_get_value(arg, C.size_t(i))
 				val := libs.SassListGetVal(sv, i)
 				err := unmarshal(SassValue{value: val}, &infs[i])
 				if err != nil {
