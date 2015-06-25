@@ -20,6 +20,7 @@ package libs
 import "C"
 import (
 	"errors"
+	"image/color"
 	"reflect"
 	"strings"
 	"unsafe"
@@ -276,6 +277,8 @@ func SassOptionSetCFunctions() {
 
 }
 
+// types
+
 func SassMakeBoolean(b bool) UnionSassValue {
 	cb := C.bool(b)
 	return C.sass_make_boolean(cb)
@@ -287,4 +290,109 @@ func SassMakeError(s string) UnionSassValue {
 
 func SassMakeWarning(s string) UnionSassValue {
 	return C.sass_make_warning(C.CString(s))
+}
+
+func SassMakeNil() UnionSassValue {
+	return C.sass_make_null()
+}
+
+func SassMakeBool(b bool) UnionSassValue {
+	return C.sass_make_boolean(C.bool(b))
+}
+
+func SassMakeString(s string) UnionSassValue {
+	return C.sass_make_string(C.CString(s))
+}
+
+// TODO: validate unit
+func SassMakeNumber(f float64, unit string) UnionSassValue {
+	return C.sass_make_number(C.double(f), C.CString(unit))
+}
+
+// TODO: accept actual color object?
+func SassMakeColor(c color.RGBA) UnionSassValue {
+	return C.sass_make_color(C.double(c.R), C.double(c.G),
+		C.double(c.B), C.double(c.A))
+}
+
+func SassMakeList(len int) UnionSassValue {
+	return C.sass_make_list(C.size_t(len), C.SASS_COMMA)
+}
+
+func SassValueIsNil(usv UnionSassValue) bool {
+	return bool(C.sass_value_is_null(usv))
+}
+
+func SassValueIsBool(usv UnionSassValue) bool {
+	return bool(C.sass_value_is_boolean(usv))
+}
+
+func SassValueIsString(usv UnionSassValue) bool {
+	return bool(C.sass_value_is_string(usv))
+}
+
+func SassValueIsColor(usv UnionSassValue) bool {
+	return bool(C.sass_value_is_color(usv))
+}
+
+func SassValueIsNumber(usv UnionSassValue) bool {
+	return bool(C.sass_value_is_number(usv))
+}
+
+func SassValueIsList(usv UnionSassValue) bool {
+	return bool(C.sass_value_is_list(usv))
+}
+
+func SassValueIsError(usv UnionSassValue) bool {
+	return bool(C.sass_value_is_error(usv))
+}
+
+func SassListGetLength(usv UnionSassValue) int {
+	l := C.sass_list_get_length(usv)
+	return int(l)
+}
+
+func SassListGetVal(usv UnionSassValue, idx int) UnionSassValue {
+	rsv := C.sass_list_get_value(usv, C.size_t(idx))
+	return rsv
+}
+
+func SassListSetVal(usv UnionSassValue, idx int, item UnionSassValue) {
+	C.sass_list_set_value(usv, C.size_t(idx), item)
+}
+
+func SassStringGetVal(usv UnionSassValue) string {
+	c := C.sass_string_get_value(usv)
+	gc := C.GoString(c)
+	return gc
+}
+
+func SassNumberGetVal(usv UnionSassValue) float64 {
+	f := C.sass_number_get_value(usv)
+	return float64(f)
+}
+
+func SassNumberGetUnit(usv UnionSassValue) string {
+	return C.GoString(C.sass_number_get_unit(usv))
+}
+
+func SassBoolGetVal(usv UnionSassValue) bool {
+	b := C.sass_boolean_get_value(usv)
+	return bool(b)
+}
+
+func SassColorGetR(usv UnionSassValue) uint8 {
+	return uint8(C.sass_color_get_r(usv))
+}
+
+func SassColorGetG(usv UnionSassValue) uint8 {
+	return uint8(C.sass_color_get_g(usv))
+}
+
+func SassColorGetB(usv UnionSassValue) uint8 {
+	return uint8(C.sass_color_get_b(usv))
+}
+
+func SassColorGetA(usv UnionSassValue) uint8 {
+	return uint8(C.sass_color_get_a(usv))
 }

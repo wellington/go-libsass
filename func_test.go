@@ -28,15 +28,15 @@ func TestFunc_simpletypes(t *testing.T) {
 			// Send the interface fn arguments to the ch channel
 
 			var n interface{}
-			var num libs.SassNumber
+			var num SassNumber
 			var s string
 			var b bool
 			var col = color.RGBA{}
 			var intf = []interface{}{n, num, s, b, col}
-			libs.Unmarshal(usv, &intf)
+			Unmarshal(SassValue{value: usv}, &intf)
 			ch <- intf
-			res, _ := libs.Marshal(false)
-			*rsv = res
+			res, _ := Marshal(false)
+			*rsv = res.Val()
 			return nil
 		},
 		Ctx: &ctx,
@@ -49,7 +49,7 @@ func TestFunc_simpletypes(t *testing.T) {
 
 	e := []interface{}{
 		"<nil>",
-		libs.SassNumber{3.0, "px"},
+		SassNumber{3.0, "px"},
 		"asdf",
 		false,
 		color.RGBA{R: 0x0, G: 0x55, B: 0x0, A: 0x1},
@@ -80,10 +80,10 @@ func TestFunc_complextypes(t *testing.T) {
 		Sign: "foo($list)",
 		Fn: func(v interface{}, usv libs.UnionSassValue, rsv *libs.UnionSassValue) error {
 			var sv interface{}
-			libs.Unmarshal(usv, &sv)
+			Unmarshal(SassValue{value: usv}, &sv)
 			ch <- sv
-			res, _ := libs.Marshal(false)
-			*rsv = res
+			res, _ := Marshal(false)
+			*rsv = res.Val()
 			return nil
 		},
 		Ctx: &ctx,
@@ -96,7 +96,7 @@ func TestFunc_complextypes(t *testing.T) {
 	e := []interface{}{
 		"a",
 		"b",
-		libs.SassNumber{1, "mm"},
+		SassNumber{1, "mm"},
 		color.RGBA{R: 0x0, G: 0x33, B: 0x0, A: 0x1},
 	}
 	var args interface{}

@@ -9,18 +9,18 @@ import (
 func TestSampleCB(t *testing.T) {
 	ctx := NewContext()
 	ctx.Cookies = make([]Cookie, 1)
-	usv, err := libs.Marshal(float64(1))
+	usv, err := Marshal(float64(1))
 	if err != nil {
 		t.Error(err)
 	}
 	var rsv libs.UnionSassValue
-	err = SampleCB(ctx, usv, &rsv)
+	err = SampleCB(ctx, usv.Val(), &rsv)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	var b bool
-	err = libs.Unmarshal(rsv, &b)
+	err = Unmarshal(SassValue{value: rsv}, &b)
 	if err != nil {
 		t.Error(err)
 	}
@@ -33,8 +33,8 @@ func TestRegisterHandler(t *testing.T) {
 	l := len(handlers)
 	RegisterHandler("foo",
 		func(v interface{}, csv libs.UnionSassValue, rsv *libs.UnionSassValue) error {
-			u, _ := libs.Marshal(false)
-			*rsv = u
+			u, _ := Marshal(false)
+			*rsv = u.Val()
 			return nil
 		})
 	if e := l + 1; len(handlers) != e {

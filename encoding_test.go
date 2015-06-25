@@ -1,4 +1,4 @@
-package libs
+package context
 
 import (
 	"fmt"
@@ -15,7 +15,7 @@ type TestError interface {
 	Error(...interface{})
 }
 
-func testMarshal(t TestError, v interface{}) UnionSassValue {
+func testMarshal(t TestError, v interface{}) SassValue {
 	res, err := Marshal(v)
 	if err != nil {
 		t.Error(err)
@@ -97,12 +97,16 @@ func TestUnmarshalComplex(t *testing.T) {
 }
 
 // Can't import C in the test package, so this is how to test cgo code
-func TestUnmarshalUnknown(t *testing.T) {
+func TestUnmarshal_unknown(t *testing.T) {
 	// Test for nil (no value, pointer, or empty error)
-	var unk UnionSassValue
-	x := testMarshal(t, unk)
+	var unk interface{}
+	res, err := Marshal(unk)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	var v interface{}
-	_ = Unmarshal(x, &v)
+	_ = Unmarshal(res, &v)
 	if v != "<nil>" {
 		t.Error("non-nil returned")
 	}
@@ -359,11 +363,11 @@ func TestOptionalParameters(t *testing.T) {
 }
 
 func TestNullUnionSassValue(t *testing.T) {
-	var usv UnionSassValue
+	usv := NewSassValue()
 	var inf interface{}
 	err := Unmarshal(usv, &inf)
 	e := "I can't work with this. arg UnionSassValue must not be nil. - Unmarshaller"
-	if err.Error() != e {
+	if err != nil {
 		t.Errorf("got: %s wanted: %s", err, e)
 	}
 }
