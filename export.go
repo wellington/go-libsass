@@ -14,14 +14,6 @@ import (
 	"github.com/wellington/go-libsass/libs"
 )
 
-// SampleCB example how a callback is defined
-func SampleCB(v interface{}, usv libs.UnionSassValue, rsv *libs.UnionSassValue) error {
-	var sv []interface{}
-	Unmarshal(SassValue{value: usv}, &sv)
-	*rsv = libs.SassMakeBoolean(false)
-	return nil
-}
-
 type HandlerFunc func(v interface{}, req SassValue, res *SassValue) error
 
 func Handler(h HandlerFunc) libs.SassCallback {
@@ -47,7 +39,9 @@ var TestCallback = testCallback(func(_ interface{}, _ SassValue, _ *SassValue) e
 })
 
 func testCallback(h HandlerFunc) libs.SassCallback {
-	return SampleCB
+	return func(v interface{}, _ libs.UnionSassValue, _ *libs.UnionSassValue) error {
+		return nil
+	}
 }
 
 // Error takes a Go error and returns a libsass Error
