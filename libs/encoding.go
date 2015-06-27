@@ -2,7 +2,10 @@ package libs
 
 // #include "sass_context.h"
 import "C"
-import "image/color"
+import (
+	"image/color"
+	"reflect"
+)
 
 type UnionSassValue *C.union_Sass_Value
 
@@ -36,7 +39,6 @@ func MakeNumber(f float64, unit string) UnionSassValue {
 	return C.sass_make_number(C.double(f), C.CString(unit))
 }
 
-// TODO: accept actual color object?
 func MakeColor(c color.RGBA) UnionSassValue {
 	return C.sass_make_color(C.double(c.R), C.double(c.G),
 		C.double(c.B), C.double(c.A))
@@ -44,6 +46,31 @@ func MakeColor(c color.RGBA) UnionSassValue {
 
 func MakeList(len int) UnionSassValue {
 	return C.sass_make_list(C.size_t(len), C.SASS_COMMA)
+}
+
+func MakeMap(len int) UnionSassValue {
+	return C.sass_make_map(C.size_t(len))
+}
+
+func Slice(usv UnionSassValue, inf interface{}) {
+	if !IsList(usv) {
+		panic("sass value is not a list")
+	}
+	l := Len(usv)
+	r := reflect.ValueOf(inf)
+	if r.Kind() == reflect.Ptr {
+		r = r.Elem()
+	}
+	if !r.CanSet() {
+		panic("value is not addressable")
+	}
+	d := reflect.MakeSlice(r.Type(), l, l)
+	for i := 0; i < l; i++ {
+		sv := Index(usv, i)
+		rf := reflect.ValueOf(Interface(sv))
+		d.Index(i).Set(rf)
+	}
+	r.Set(d)
 }
 
 func IsNil(usv UnionSassValue) bool {
@@ -153,7 +180,13 @@ func Index(usv UnionSassValue, i int) UnionSassValue {
 }
 
 func SetIndex(usv UnionSassValue, i int, item UnionSassValue) {
-	C.sass_list_set_value(usv, C.size_t(i), item)
+	switch {
+	case IsList(usv):
+		C.sass_list_set_value(usv, C.size_t(i), item)
+		return
+	default:
+	}
+	panic("call of setindex on unknown type")
 }
 
 func MapKeys(m UnionSassValue) []UnionSassValue {

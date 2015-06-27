@@ -79,7 +79,7 @@ func TestUnmarshalError(t *testing.T) {
 	}
 }
 
-func TestUnmarshalComplex(t *testing.T) {
+func TestUnmarshal_complex(t *testing.T) {
 	// Only interfaces supported for lists, is this ok?
 	e := []string{"ex1", "ex2"}
 	list, _ := makevalue(e)
@@ -294,6 +294,32 @@ func TestListListtoInterfaceList(t *testing.T) {
 
 	if !reflect.DeepEqual(lst2, elst) {
 		t.Errorf("What the damn hell. Wanted:\n%#v\ngot:\n% #v", elst, lst2)
+	}
+}
+
+func TestSlice_make(t *testing.T) {
+	l := []string{"a", "b"}
+	x := testMarshal(t, l)
+	var res []string
+	err := Unmarshal(x, &res)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if e := len(l); e != len(res) {
+		t.Errorf("got: %d wanted: %d", len(res), e)
+	}
+	if e := l[0]; e != res[0] {
+		t.Fatalf("got: %s wanted: %s", res[0], e)
+	}
+
+	// Now test new fancy libs.Slice()
+	res = []string{}
+	libs.Slice(x.Val(), &res)
+	if e := len(l); e != len(res) {
+		t.Errorf("got: %d wanted: %d", len(res), e)
+	}
+	if e := l[0]; e != res[0] {
+		t.Fatalf("got: %s wanted: %s", res[0], e)
 	}
 }
 
