@@ -123,7 +123,7 @@ func unmarshal(arg SassValue, v interface{}) error {
 		}
 	case reflect.Slice:
 		if libs.IsList(sv) {
-			l := libs.SassListGetLength(sv)
+			l := libs.Len(sv)
 			newv := reflect.MakeSlice(t, l, l)
 			infs := make([]interface{}, l)
 			for i := range infs {
@@ -148,7 +148,7 @@ func Unmarshal(arg SassValue, v ...interface{}) error {
 	sv := arg.Val()
 	var l int
 	if libs.IsList(sv) {
-		l = libs.SassListGetLength(sv)
+		l = libs.Len(sv)
 	}
 	if arg.Val() == nil {
 		return errors.New("I can't work with this. arg UnionSassValue must not be nil. - Unmarshaller")

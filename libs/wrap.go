@@ -346,9 +346,12 @@ func IsError(usv UnionSassValue) bool {
 	return bool(C.sass_value_is_error(usv))
 }
 
-func SassListGetLength(usv UnionSassValue) int {
-	l := C.sass_list_get_length(usv)
-	return int(l)
+func Len(usv UnionSassValue) int {
+	switch {
+	case IsList(usv):
+		return int(C.sass_list_get_length(usv))
+	}
+	panic("call of len on unknown type")
 }
 
 func SassListGetVal(usv UnionSassValue, idx int) UnionSassValue {
