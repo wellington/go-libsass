@@ -227,27 +227,27 @@ func makevalue(v interface{}) (SassValue, error) {
 	var err error
 	switch f.Kind() {
 	default:
-		return SassValue{value: libs.SassMakeNil()}, nil
+		return SassValue{value: libs.MakeNil()}, nil
 	case reflect.Bool:
 		b := v.(bool)
-		return SassValue{value: libs.SassMakeBool(b)}, nil
+		return SassValue{value: libs.MakeBool(b)}, nil
 	case reflect.String:
 		s := v.(string)
-		return SassValue{value: libs.SassMakeString(s)}, nil
+		return SassValue{value: libs.MakeString(s)}, nil
 	case reflect.Struct: //only SassNumber and color.RGBA are supported
 		if reflect.TypeOf(v).String() == "context.SassNumber" {
 			var sn = v.(SassNumber)
-			return SassValue{value: libs.SassMakeNumber(sn.Value, sn.Unit)}, err
+			return SassValue{value: libs.MakeNumber(sn.Value, sn.Unit)}, err
 		} else if reflect.TypeOf(v).String() == "color.RGBA" {
 			var sc = v.(color.RGBA)
-			return SassValue{value: libs.SassMakeColor(sc)}, nil
+			return SassValue{value: libs.MakeColor(sc)}, nil
 		} else {
 			err = errors.New(fmt.Sprintf("The struct type %s is unsupported for marshalling", reflect.TypeOf(v).String()))
-			return SassValue{value: libs.SassMakeNil()}, err
+			return SassValue{value: libs.MakeNil()}, err
 		}
 	case reflect.Slice:
 		// Initialize the list
-		lst := libs.SassMakeList(f.Len())
+		lst := libs.MakeList(f.Len())
 		for i := 0; i < f.Len(); i++ {
 			t, er := makevalue(f.Index(i).Interface())
 			if err == nil && er != nil {

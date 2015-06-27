@@ -278,44 +278,43 @@ func SassOptionSetCFunctions() {
 }
 
 // types
+func MakeNil() UnionSassValue {
+	return C.sass_make_null()
+}
 
-func SassMakeBoolean(b bool) UnionSassValue {
+func MakeBoolean(b bool) UnionSassValue {
 	cb := C.bool(b)
 	return C.sass_make_boolean(cb)
 }
 
-func SassMakeError(s string) UnionSassValue {
+func MakeError(s string) UnionSassValue {
 	return C.sass_make_error(C.CString(s))
 }
 
-func SassMakeWarning(s string) UnionSassValue {
+func MakeWarning(s string) UnionSassValue {
 	return C.sass_make_warning(C.CString(s))
 }
 
-func SassMakeNil() UnionSassValue {
-	return C.sass_make_null()
-}
-
-func SassMakeBool(b bool) UnionSassValue {
+func MakeBool(b bool) UnionSassValue {
 	return C.sass_make_boolean(C.bool(b))
 }
 
-func SassMakeString(s string) UnionSassValue {
+func MakeString(s string) UnionSassValue {
 	return C.sass_make_string(C.CString(s))
 }
 
 // TODO: validate unit
-func SassMakeNumber(f float64, unit string) UnionSassValue {
+func MakeNumber(f float64, unit string) UnionSassValue {
 	return C.sass_make_number(C.double(f), C.CString(unit))
 }
 
 // TODO: accept actual color object?
-func SassMakeColor(c color.RGBA) UnionSassValue {
+func MakeColor(c color.RGBA) UnionSassValue {
 	return C.sass_make_color(C.double(c.R), C.double(c.G),
 		C.double(c.B), C.double(c.A))
 }
 
-func SassMakeList(len int) UnionSassValue {
+func MakeList(len int) UnionSassValue {
 	return C.sass_make_list(C.size_t(len), C.SASS_COMMA)
 }
 

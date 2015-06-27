@@ -19,7 +19,7 @@ type HandlerFunc func(v interface{}, req SassValue, res *SassValue) error
 func Handler(h HandlerFunc) libs.SassCallback {
 	return func(v interface{}, usv libs.UnionSassValue, rsv *libs.UnionSassValue) error {
 		if *rsv == nil {
-			*rsv = libs.SassMakeNil()
+			*rsv = libs.MakeNil()
 		}
 		req := SassValue{value: usv}
 		res := SassValue{value: *rsv}
@@ -46,13 +46,13 @@ func testCallback(h HandlerFunc) libs.SassCallback {
 
 // Error takes a Go error and returns a libsass Error
 func Error(err error) SassValue {
-	return SassValue{value: libs.SassMakeError(err.Error())}
+	return SassValue{value: libs.MakeError(err.Error())}
 }
 
 // Warn takes a string and causes a warning in libsass
 func Warn(s string) SassValue {
 	//return C.sass_make_warning(C.CString(s))
-	return SassValue{value: libs.SassMakeWarning(s)}
+	return SassValue{value: libs.MakeWarning(s)}
 }
 
 // WarnHandler captures Sass warnings and redirects to stdout
