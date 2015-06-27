@@ -12,7 +12,7 @@ import (
 
 func TestFunc_simpletypes(t *testing.T) {
 	in := bytes.NewBufferString(`div {
-  background: foo(null, 3px, asdf, false);//, #005500);
+  background: foo(null, 3px, asdf, false);
 }`)
 
 	//var out bytes.Buffer
@@ -24,22 +24,20 @@ func TestFunc_simpletypes(t *testing.T) {
 	ctx.Cookies[0] = Cookie{
 
 		Sign: "foo($null, $num, $str, $bool)",
-		Fn: func(v interface{}, usv libs.UnionSassValue, rsv *libs.UnionSassValue) error {
-			// Send the interface fn arguments to the ch channel
+		Fn: Handler(func(v interface{}, req SassValue, res *SassValue) error {
 			var n interface{}
 			var num SassNumber
 			var s string
 			var b bool
 			var intf = []interface{}{n, num, s, b}
-			err := Unmarshal(SassValue{value: usv}, &intf)
+			err := Unmarshal(req, &intf)
 			if err != nil {
 				t.Fatal(err)
 			}
+			// Send the interface fn arguments to the ch channel
 			ch <- intf
-			res, _ := Marshal(false)
-			*rsv = res.Val()
 			return nil
-		},
+		}),
 		Ctx: &ctx,
 	}
 	var out bytes.Buffer
@@ -56,7 +54,7 @@ func TestFunc_simpletypes(t *testing.T) {
 	}
 	var args []interface{}
 	select {
-	case <-time.After(100 * time.Millisecond):
+	case <-time.After(10 * time.Millisecond):
 		t.Fatal("timeout")
 	case args = <-ch:
 	}
@@ -172,7 +170,7 @@ func TestFunc_customarity(t *testing.T) {
 
 	ctx.Cookies[0] = Cookie{
 		Sign: "foo()",
-		Fn:   SampleCB,
+		Fn:   TestCallback,
 		Ctx:  &ctx,
 	}
 	err := ctx.Compile(in, &out)

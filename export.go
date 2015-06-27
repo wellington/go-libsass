@@ -22,6 +22,34 @@ func SampleCB(v interface{}, usv libs.UnionSassValue, rsv *libs.UnionSassValue) 
 	return nil
 }
 
+type HandlerFunc func(v interface{}, req SassValue, res *SassValue) error
+
+func Handler(h HandlerFunc) libs.SassCallback {
+	return func(v interface{}, usv libs.UnionSassValue, rsv *libs.UnionSassValue) error {
+		if *rsv == nil {
+			*rsv = libs.SassMakeNil()
+		}
+		req := SassValue{value: usv}
+		res := SassValue{value: *rsv}
+		err := h(v, req, &res)
+		*rsv = res.Val()
+
+		return err
+	}
+}
+
+var _ libs.SassCallback = TestCallback
+
+// TestCallback implements libs.SassCallback. TestCallback is a useful
+// place to start when developing new handlers.
+var TestCallback = testCallback(func(_ interface{}, _ SassValue, _ *SassValue) error {
+	return nil
+})
+
+func testCallback(h HandlerFunc) libs.SassCallback {
+	return SampleCB
+}
+
 // Error takes a Go error and returns a libsass Error
 func Error(err error) SassValue {
 	return SassValue{value: libs.SassMakeError(err.Error())}
