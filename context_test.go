@@ -110,7 +110,9 @@ func TestLibsassError(t *testing.T) {
 	}
 
 	ctx.Cookies[0] = Cookie{
-		"foo()", SampleCB, &ctx,
+		Sign: "foo()",
+		Fn:   TestCallback,
+		Ctx:  &ctx,
 	}
 	err := ctx.Compile(in, &out)
 
