@@ -5,6 +5,8 @@ import (
 	"image/color"
 	"reflect"
 	"testing"
+
+	"github.com/wellington/go-libsass/libs"
 )
 
 type unsupportedStruct struct {
@@ -293,6 +295,34 @@ func TestListListtoInterfaceList(t *testing.T) {
 	if !reflect.DeepEqual(lst2, elst) {
 		t.Errorf("What the damn hell. Wanted:\n%#v\ngot:\n% #v", elst, lst2)
 	}
+}
+
+func TestSV_equal(t *testing.T) {
+	b := libs.MakeBool(true)
+	bb := libs.MakeBool(true)
+
+	if libs.Interface(b) != libs.Interface(bb) {
+		t.Fatal("equal failed")
+	}
+
+	c := libs.MakeColor(color.RGBA{})
+	cc := libs.MakeColor(color.RGBA{})
+
+	if libs.Interface(c) != libs.Interface(cc) {
+		t.Fatal("equal failed")
+	}
+}
+
+func TestMarshal_map_set(t *testing.T) {
+	t.Skip("maps are not supported")
+	m := map[string]string{"key": "val"}
+	x := testMarshal(t, m)
+	var mm map[string]string
+	err := Unmarshal(x, &mm)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Printf("% #v\n", mm)
 }
 
 func TestMarshalUnsupportedStruct(t *testing.T) {

@@ -122,7 +122,7 @@ func unmarshal(arg SassValue, v interface{}) error {
 			newv := reflect.MakeSlice(t, l, l)
 			infs := make([]interface{}, l)
 			for i := range infs {
-				val := libs.SassListGetVal(sv, i)
+				val := libs.Index(sv, i)
 				err := unmarshal(SassValue{value: val}, &infs[i])
 				if err != nil {
 					return err
@@ -156,7 +156,7 @@ func Unmarshal(arg SassValue, v ...interface{}) error {
 				l, len(v))
 		}
 		for i := 0; i < l; i++ {
-			val := libs.SassListGetVal(sv, i)
+			val := libs.Index(sv, i)
 			err = unmarshal(SassValue{value: val}, v[i])
 			if err != nil {
 				return err
@@ -166,13 +166,13 @@ func Unmarshal(arg SassValue, v ...interface{}) error {
 	} else if libs.IsList(sv) &&
 		getKind(v[0]) != reflect.Slice &&
 		l == 1 { //arg is a slice of 1 but we want back a non slice
-		val := libs.SassListGetVal(sv, 0)
+		val := libs.Index(sv, 0)
 		return unmarshal(SassValue{value: val}, v[0])
 	} else if libs.IsList(sv) &&
 		getKind(v[0]) == reflect.Slice &&
-		libs.IsList(libs.SassListGetVal(sv, 0)) &&
+		libs.IsList(libs.Index(sv, 0)) &&
 		l == 1 { //arg is a list of single list and we only want back a list so we need to unwrap
-		val := libs.SassListGetVal(sv, 0)
+		val := libs.Index(sv, 0)
 		return unmarshal(SassValue{value: val}, v[0])
 		//return unmarshal(C.sass_list_get_value(arg, C.size_t(0)), v[0])
 	} else {
@@ -248,7 +248,7 @@ func makevalue(v interface{}) (SassValue, error) {
 			if err == nil && er != nil {
 				err = er
 			}
-			libs.SassListSetVal(lst, i, t.Val())
+			libs.SetIndex(lst, i, t.Val())
 		}
 		return SassValue{value: lst}, err
 	}
