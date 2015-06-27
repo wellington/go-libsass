@@ -363,38 +363,31 @@ func SassListSetVal(usv UnionSassValue, idx int, item UnionSassValue) {
 	C.sass_list_set_value(usv, C.size_t(idx), item)
 }
 
-func SassStringGetVal(usv UnionSassValue) string {
+func String(usv UnionSassValue) string {
 	c := C.sass_string_get_value(usv)
 	gc := C.GoString(c)
 	return gc
 }
 
-func SassNumberGetVal(usv UnionSassValue) float64 {
+func Float(usv UnionSassValue) float64 {
 	f := C.sass_number_get_value(usv)
 	return float64(f)
 }
 
-func SassNumberGetUnit(usv UnionSassValue) string {
+func Unit(usv UnionSassValue) string {
 	return C.GoString(C.sass_number_get_unit(usv))
 }
 
-func SassBoolGetVal(usv UnionSassValue) bool {
+func Bool(usv UnionSassValue) bool {
 	b := C.sass_boolean_get_value(usv)
 	return bool(b)
 }
 
-func SassColorGetR(usv UnionSassValue) uint8 {
-	return uint8(C.sass_color_get_r(usv))
-}
-
-func SassColorGetG(usv UnionSassValue) uint8 {
-	return uint8(C.sass_color_get_g(usv))
-}
-
-func SassColorGetB(usv UnionSassValue) uint8 {
-	return uint8(C.sass_color_get_b(usv))
-}
-
-func SassColorGetA(usv UnionSassValue) uint8 {
-	return uint8(C.sass_color_get_a(usv))
+func Color(usv UnionSassValue) color.Color {
+	return color.RGBA{
+		R: uint8(C.sass_color_get_r(usv)),
+		G: uint8(C.sass_color_get_g(usv)),
+		B: uint8(C.sass_color_get_b(usv)),
+		A: uint8(C.sass_color_get_a(usv)),
+	}
 }

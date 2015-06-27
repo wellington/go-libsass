@@ -69,7 +69,7 @@ func unmarshal(arg SassValue, v interface{}) error {
 		return errors.New("Invalid SASS Value - Taylor Swift")
 	case reflect.String:
 		if libs.IsString(sv) || libs.IsError(sv) {
-			gc := libs.SassStringGetVal(sv)
+			gc := libs.String(sv)
 			//drop quotes
 			if t, err := strconv.Unquote(gc); err == nil {
 				gc = t
@@ -92,7 +92,7 @@ func unmarshal(arg SassValue, v interface{}) error {
 		}
 	case reflect.Bool:
 		if libs.IsBool(sv) {
-			b := libs.SassBoolGetVal(sv)
+			b := libs.Bool(sv)
 			f.Set(reflect.ValueOf(b))
 		} else {
 			return throwMisMatchTypeError(arg, "bool")
@@ -100,12 +100,7 @@ func unmarshal(arg SassValue, v interface{}) error {
 	case reflect.Struct:
 		//Check for color
 		if libs.IsColor(sv) {
-			col := color.RGBA{
-				R: libs.SassColorGetR(sv),
-				G: libs.SassColorGetG(sv),
-				B: libs.SassColorGetB(sv),
-				A: libs.SassColorGetA(sv),
-			}
+			col := libs.Color(sv)
 			f.Set(reflect.ValueOf(col))
 		} else if libs.IsNumber(sv) {
 			u, err := getSassNumberUnit(arg)
@@ -113,7 +108,7 @@ func unmarshal(arg SassValue, v interface{}) error {
 				return err
 			}
 			sn := SassNumber{
-				Value: libs.SassNumberGetVal(sv),
+				Value: libs.Float(sv),
 				Unit:  u,
 			}
 			f.Set(reflect.ValueOf(sn))
@@ -197,13 +192,13 @@ func getKind(v interface{}) reflect.Kind {
 
 func noSassNumberUnit(arg SassValue) bool {
 	sv := arg.Val()
-	u := libs.SassNumberGetUnit(sv)
+	u := libs.Unit(sv)
 	return u == "" || u == "none"
 }
 
 func getSassNumberUnit(arg SassValue) (string, error) {
 	sv := arg.Val()
-	u := libs.SassNumberGetUnit(sv)
+	u := libs.Unit(sv)
 	err := error(nil)
 
 	if u == "" || u == "none" {
