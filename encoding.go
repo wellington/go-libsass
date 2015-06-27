@@ -40,22 +40,22 @@ func unmarshal(arg SassValue, v interface{}) error {
 
 	if k == reflect.Interface {
 		switch {
-		case libs.SassValueIsNil(sv):
+		case libs.IsNil(sv):
 			f.Set(reflect.ValueOf("<nil>"))
 			return nil
-		case libs.SassValueIsString(sv):
+		case libs.IsString(sv):
 			k = reflect.String
-		case libs.SassValueIsBool(sv):
+		case libs.IsBool(sv):
 			k = reflect.Bool
-		case libs.SassValueIsNumber(sv):
+		case libs.IsNumber(sv):
 			k = reflect.Struct
-		case libs.SassValueIsList(sv):
+		case libs.IsList(sv):
 			k = reflect.Slice
 			t = reflect.SliceOf(t)
-		case libs.SassValueIsError(sv):
+		case libs.IsError(sv):
 			// This should get implemented as type error
 			k = reflect.String
-		case libs.SassValueIsColor(sv):
+		case libs.IsColor(sv):
 			k = reflect.Struct
 		default:
 			return errors.New("Uncovertable interface value.")
@@ -68,7 +68,7 @@ func unmarshal(arg SassValue, v interface{}) error {
 	case reflect.Invalid:
 		return errors.New("Invalid SASS Value - Taylor Swift")
 	case reflect.String:
-		if libs.SassValueIsString(sv) || libs.SassValueIsError(sv) {
+		if libs.IsString(sv) || libs.IsError(sv) {
 			gc := libs.SassStringGetVal(sv)
 			//drop quotes
 			if t, err := strconv.Unquote(gc); err == nil {
@@ -91,7 +91,7 @@ func unmarshal(arg SassValue, v interface{}) error {
 			return throwMisMatchTypeError(arg, "string")
 		}
 	case reflect.Bool:
-		if libs.SassValueIsBool(sv) {
+		if libs.IsBool(sv) {
 			b := libs.SassBoolGetVal(sv)
 			f.Set(reflect.ValueOf(b))
 		} else {
@@ -99,7 +99,7 @@ func unmarshal(arg SassValue, v interface{}) error {
 		}
 	case reflect.Struct:
 		//Check for color
-		if libs.SassValueIsColor(sv) {
+		if libs.IsColor(sv) {
 			col := color.RGBA{
 				R: libs.SassColorGetR(sv),
 				G: libs.SassColorGetG(sv),
@@ -107,7 +107,7 @@ func unmarshal(arg SassValue, v interface{}) error {
 				A: libs.SassColorGetA(sv),
 			}
 			f.Set(reflect.ValueOf(col))
-		} else if libs.SassValueIsNumber(sv) {
+		} else if libs.IsNumber(sv) {
 			u, err := getSassNumberUnit(arg)
 			if err != nil {
 				return err
@@ -122,7 +122,7 @@ func unmarshal(arg SassValue, v interface{}) error {
 			return throwMisMatchTypeError(arg, "color.RGBA or SassNumber")
 		}
 	case reflect.Slice:
-		if libs.SassValueIsList(sv) {
+		if libs.IsList(sv) {
 			l := libs.SassListGetLength(sv)
 			newv := reflect.MakeSlice(t, l, l)
 			infs := make([]interface{}, l)
@@ -147,7 +147,7 @@ func Unmarshal(arg SassValue, v ...interface{}) error {
 	var err error
 	sv := arg.Val()
 	var l int
-	if libs.SassValueIsList(sv) {
+	if libs.IsList(sv) {
 		l = libs.SassListGetLength(sv)
 	}
 	if arg.Val() == nil {
@@ -168,14 +168,14 @@ func Unmarshal(arg SassValue, v ...interface{}) error {
 			}
 		}
 		return err
-	} else if libs.SassValueIsList(sv) &&
+	} else if libs.IsList(sv) &&
 		getKind(v[0]) != reflect.Slice &&
 		l == 1 { //arg is a slice of 1 but we want back a non slice
 		val := libs.SassListGetVal(sv, 0)
 		return unmarshal(SassValue{value: val}, v[0])
-	} else if libs.SassValueIsList(sv) &&
+	} else if libs.IsList(sv) &&
 		getKind(v[0]) == reflect.Slice &&
-		libs.SassValueIsList(libs.SassListGetVal(sv, 0)) &&
+		libs.IsList(libs.SassListGetVal(sv, 0)) &&
 		l == 1 { //arg is a list of single list and we only want back a list so we need to unwrap
 		val := libs.SassListGetVal(sv, 0)
 		return unmarshal(SassValue{value: val}, v[0])

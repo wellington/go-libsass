@@ -318,31 +318,31 @@ func MakeList(len int) UnionSassValue {
 	return C.sass_make_list(C.size_t(len), C.SASS_COMMA)
 }
 
-func SassValueIsNil(usv UnionSassValue) bool {
+func IsNil(usv UnionSassValue) bool {
 	return bool(C.sass_value_is_null(usv))
 }
 
-func SassValueIsBool(usv UnionSassValue) bool {
+func IsBool(usv UnionSassValue) bool {
 	return bool(C.sass_value_is_boolean(usv))
 }
 
-func SassValueIsString(usv UnionSassValue) bool {
+func IsString(usv UnionSassValue) bool {
 	return bool(C.sass_value_is_string(usv))
 }
 
-func SassValueIsColor(usv UnionSassValue) bool {
+func IsColor(usv UnionSassValue) bool {
 	return bool(C.sass_value_is_color(usv))
 }
 
-func SassValueIsNumber(usv UnionSassValue) bool {
+func IsNumber(usv UnionSassValue) bool {
 	return bool(C.sass_value_is_number(usv))
 }
 
-func SassValueIsList(usv UnionSassValue) bool {
+func IsList(usv UnionSassValue) bool {
 	return bool(C.sass_value_is_list(usv))
 }
 
-func SassValueIsError(usv UnionSassValue) bool {
+func IsError(usv UnionSassValue) bool {
 	return bool(C.sass_value_is_error(usv))
 }
 
