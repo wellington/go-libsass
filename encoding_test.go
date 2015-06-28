@@ -324,7 +324,7 @@ func TestSlice_make(t *testing.T) {
 }
 
 func TestSlice_mixedtypes(t *testing.T) {
-	infs := []interface{}{"a", "b", libs.SassNumber{1, "mm"}}
+	infs := []interface{}{"a", "b", libs.SassNumber{Value: 1, Unit: "mm"}}
 	sv := testMarshal(t, infs)
 	var res []interface{}
 	libs.Slice(sv.Val(), &res)
