@@ -323,6 +323,18 @@ func TestSlice_make(t *testing.T) {
 	}
 }
 
+func TestSlice_mixedtypes(t *testing.T) {
+	infs := []interface{}{"a", "b", libs.SassNumber{1, "mm"}}
+	sv := testMarshal(t, infs)
+	var res []interface{}
+	libs.Slice(sv.Val(), &res)
+
+	if !reflect.DeepEqual(res, infs) {
+		t.Errorf("got: % #v wanted: % #v\n", res, infs)
+	}
+
+}
+
 func TestSV_equal(t *testing.T) {
 	b := libs.MakeBool(true)
 	bb := libs.MakeBool(true)

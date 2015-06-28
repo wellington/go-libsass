@@ -63,8 +63,6 @@ func unmarshal(arg SassValue, v interface{}) error {
 	}
 
 	switch k {
-	default:
-		return errors.New("Unsupported SassValue")
 	case reflect.Invalid:
 		return errors.New("Invalid SASS Value - Taylor Swift")
 	case reflect.String:
@@ -117,22 +115,24 @@ func unmarshal(arg SassValue, v interface{}) error {
 			return throwMisMatchTypeError(arg, "color.RGBA or SassNumber")
 		}
 	case reflect.Slice:
-		if libs.IsList(sv) {
-			l := libs.Len(sv)
-			newv := reflect.MakeSlice(t, l, l)
-			infs := make([]interface{}, l)
-			for i := range infs {
-				val := libs.Index(sv, i)
-				err := unmarshal(SassValue{value: val}, &infs[i])
-				if err != nil {
-					return err
-				}
-				newv.Index(i).Set(reflect.ValueOf(infs[i]))
-			}
-			f.Set(newv)
-		} else {
+		if !libs.IsList(sv) {
 			return throwMisMatchTypeError(arg, "slice")
 		}
+
+		l := libs.Len(sv)
+		newv := reflect.MakeSlice(t, l, l)
+		infs := make([]interface{}, l)
+		for i := range infs {
+			val := libs.Index(sv, i)
+			err := unmarshal(SassValue{value: val}, &infs[i])
+			if err != nil {
+				return err
+			}
+			newv.Index(i).Set(reflect.ValueOf(infs[i]))
+		}
+		f.Set(newv)
+	default:
+		return errors.New("Unsupported SassValue")
 	}
 	return nil
 }
@@ -230,11 +230,15 @@ func makevalue(v interface{}) (SassValue, error) {
 		s := v.(string)
 		return SassValue{value: libs.MakeString(s)}, nil
 	case reflect.Struct: //only SassNumber and color.RGBA are supported
-		if reflect.TypeOf(v).String() == "context.SassNumber" {
-			var sn = v.(SassNumber)
-			return SassValue{value: libs.MakeNumber(sn.Value, sn.Unit)}, err
-		} else if reflect.TypeOf(v).String() == "color.RGBA" {
-			var sc = v.(color.RGBA)
+		if sn, ok := v.(SassNumber); ok {
+			return SassValue{
+				value: libs.MakeNumber(sn.Value, sn.Unit),
+			}, err
+		} else if sn, ok := v.(libs.SassNumber); ok {
+			return SassValue{
+				value: libs.MakeNumber(sn.Float(), sn.UnitOf()),
+			}, err
+		} else if sc, ok := v.(color.RGBA); ok {
 			return SassValue{value: libs.MakeColor(sc)}, nil
 		} else {
 			err = errors.New(fmt.Sprintf("The struct type %s is unsupported for marshalling", reflect.TypeOf(v).String()))

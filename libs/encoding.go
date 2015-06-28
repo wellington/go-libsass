@@ -147,22 +147,22 @@ func String(usv UnionSassValue) string {
 }
 
 type SassNumber struct {
-	value float64
-	unit  string
+	Value float64
+	Unit  string
 }
 
 func (n SassNumber) Float() float64 {
-	return n.value
+	return n.Value
 }
 
-func (n SassNumber) Unit() string {
-	return n.unit
+func (n SassNumber) UnitOf() string {
+	return n.Unit
 }
 
 func Number(usv UnionSassValue) SassNumber {
 	return SassNumber{
-		value: Float(usv),
-		unit:  Unit(usv),
+		Value: Float(usv),
+		Unit:  Unit(usv),
 	}
 }
 
