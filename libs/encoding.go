@@ -117,7 +117,7 @@ func Interface(usv UnionSassValue) interface{} {
 	case IsColor(usv):
 		return Color(usv)
 	case IsNumber(usv):
-		return Float(usv)
+		return Number(usv)
 	case IsList(usv):
 		fallthrough
 		//return List(usv)
@@ -144,6 +144,26 @@ func String(usv UnionSassValue) string {
 	c := C.sass_string_get_value(usv)
 	gc := C.GoString(c)
 	return gc
+}
+
+type SassNumber struct {
+	value float64
+	unit  string
+}
+
+func (n SassNumber) Float() float64 {
+	return n.value
+}
+
+func (n SassNumber) Unit() string {
+	return n.unit
+}
+
+func Number(usv UnionSassValue) SassNumber {
+	return SassNumber{
+		value: Float(usv),
+		unit:  Unit(usv),
+	}
 }
 
 func Float(usv UnionSassValue) float64 {
