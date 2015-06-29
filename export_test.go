@@ -1,17 +1,13 @@
 package context
 
-import (
-	"testing"
-
-	"github.com/wellington/go-libsass/libs"
-)
+import "testing"
 
 func TestRegisterHandler(t *testing.T) {
 	l := len(handlers)
 	RegisterHandler("foo",
-		func(v interface{}, csv libs.UnionSassValue, rsv *libs.UnionSassValue) error {
+		func(v interface{}, csv SassValue, rsv *SassValue) error {
 			u, _ := Marshal(false)
-			*rsv = u.Val()
+			*rsv = u
 			return nil
 		})
 	if e := l + 1; len(handlers) != e {

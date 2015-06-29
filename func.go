@@ -12,13 +12,20 @@ import (
 	"github.com/wellington/go-libsass/libs"
 )
 
-// Cookie is used for passing context information to libsass.  Cookie is
-// passed to custom handlers when libsass executes them through the go
-// bridge.
-type Cookie struct {
-	Sign string
-	Fn   libs.SassCallback
-	Ctx  interface{}
+type HandlerFunc func(v interface{}, req SassValue, res *SassValue) error
+
+func Handler(h HandlerFunc) libs.SassCallback {
+	return func(v interface{}, usv libs.UnionSassValue, rsv *libs.UnionSassValue) error {
+		if *rsv == nil {
+			*rsv = libs.MakeNil()
+		}
+		req := SassValue{value: usv}
+		res := SassValue{value: *rsv}
+		err := h(v, req, &res)
+		*rsv = res.Val()
+
+		return err
+	}
 }
 
 type handler struct {
@@ -26,13 +33,39 @@ type handler struct {
 	callback libs.SassCallback
 }
 
+// RegisterHandler sets the passed signature and callback to the
+// handlers array.
+func RegisterHandler(sign string, callback HandlerFunc) {
+	handlers = append(handlers, handler{
+		sign:     sign,
+		callback: Handler(callback),
+	})
+}
+
+var _ libs.SassCallback = TestCallback
+
+func testCallback(h HandlerFunc) libs.SassCallback {
+	return func(v interface{}, _ libs.UnionSassValue, _ *libs.UnionSassValue) error {
+		return nil
+	}
+}
+
+// TestCallback implements libs.SassCallback. TestCallback is a useful
+// place to start when developing new handlers.
+var TestCallback = testCallback(func(_ interface{}, _ SassValue, _ *SassValue) error {
+	return nil
+})
+
 // handlers is the list of registered sass handlers
 var handlers []handler
 
-// RegisterHandler sets the passed signature and callback to the
-// handlers array.
-func RegisterHandler(sign string, callback libs.SassCallback) {
-	handlers = append(handlers, handler{sign, callback})
+// Cookie is used for passing context information to libsass.  Cookie is
+// passed to custom handlers when libsass executes them through the go
+// bridge.
+type Cookie struct {
+	Sign string
+	Fn   libs.SassCallback
+	Ctx  interface{}
 }
 
 func (ctx *Context) SetFunc(opts *C.struct_Sass_Options) {
