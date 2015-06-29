@@ -27,25 +27,25 @@ func testMarshal(t TestError, v interface{}) SassValue {
 
 func TestUnmarshalNumber(t *testing.T) {
 
-	c := SassNumber{1.0, "mm"}
+	c := libs.SassNumber{1.0, "mm"}
 	sv, _ := makevalue(c)
-	var i SassNumber
+	var i libs.SassNumber
 	Unmarshal(sv, &i)
 	if c != i {
 		t.Errorf("got: %v wanted: %v", i, c)
 	}
 
-	d := SassNumber{1.5, "pt"}
+	d := libs.SassNumber{1.5, "pt"}
 	dv, _ := makevalue(d)
-	var ed SassNumber
+	var ed libs.SassNumber
 	Unmarshal(dv, &ed)
 	if d != ed {
 		t.Errorf("got: %v wanted: %v", ed, d)
 	}
 
-	d = SassNumber{2.0, "TaylorSwifts"}
+	d = libs.SassNumber{2.0, "TaylorSwifts"}
 	dv, _ = makevalue(d)
-	var ei SassNumber
+	var ei libs.SassNumber
 	err := Unmarshal(dv, &ei)
 	if err == nil {
 		t.Error("No error thrown for invalid type")
@@ -117,8 +117,8 @@ func TestUnmarshal_unknown(t *testing.T) {
 }
 
 func TestMarshalInvalidUnitSassNumber(t *testing.T) {
-	num := SassNumber{45, "em"}
-	var num2 SassNumber
+	num := libs.SassNumber{45, "em"}
+	var num2 libs.SassNumber
 	x := testMarshal(t, num)
 	error := Unmarshal(x, &num2)
 
@@ -127,9 +127,13 @@ func TestMarshalInvalidUnitSassNumber(t *testing.T) {
 	}
 }
 
-func TestMarshalList(t *testing.T) {
-	lst1 := []SassNumber{SassNumber{1, "px"}, SassNumber{2, "rad"}, SassNumber{3, "grad"}, SassNumber{4, "deg"}}
-	var lst2 []SassNumber
+func TestMarshal_list(t *testing.T) {
+	lst1 := []libs.SassNumber{
+		libs.SassNumber{Value: 1, Unit: "px"},
+		libs.SassNumber{Value: 2, Unit: "rad"},
+		libs.SassNumber{Value: 3, Unit: "grad"},
+		libs.SassNumber{Value: 4, Unit: "deg"}}
+	var lst2 []libs.SassNumber
 
 	x := testMarshal(t, lst1)
 	_ = Unmarshal(x, &lst2)
@@ -145,8 +149,8 @@ func TestMarshalList(t *testing.T) {
 	}
 }
 
-func TestMarshalNumberInterface(t *testing.T) {
-	var fl = SassNumber{3, "turn"}
+func TestMarshal_number_interface(t *testing.T) {
+	var fl = libs.SassNumber{Value: 3, Unit: "turn"}
 	var intf interface{}
 
 	x := testMarshal(t, fl)
@@ -170,11 +174,11 @@ func TestMarshalBool(t *testing.T) {
 }
 
 func TestMarshalInterfaceListToMultiVariable(t *testing.T) {
-	var lst = []interface{}{SassNumber{5, "pt"}, "a", true}
-	var i SassNumber
+	var lst = []interface{}{libs.SassNumber{Value: 5, Unit: "pt"}, "a", true}
+	var i libs.SassNumber
 	var s string
 	var b bool
-	var ir = SassNumber{5, "pt"}
+	var ir = libs.SassNumber{5, "pt"}
 	var sr = string("a")
 	var br = bool(true)
 
@@ -193,12 +197,14 @@ func TestMarshalInterfaceListToMultiVariable(t *testing.T) {
 }
 
 func TestMarshalInterfaceListToMultiVariablewList(t *testing.T) {
-	var lst = []interface{}{SassNumber{5, "pt"}, "a", true, []string{"a", "b", "c", "d"}}
-	var i SassNumber
+	var lst = []interface{}{
+		libs.SassNumber{Value: 5, Unit: "pt"}, "a", true,
+		[]string{"a", "b", "c", "d"}}
+	var i libs.SassNumber
 	var s string
 	var b bool
 	var sl []string
-	var ir = SassNumber{5, "pt"}
+	var ir = libs.SassNumber{Value: 5, Unit: "pt"}
 	var sr = string("a")
 	var br = bool(true)
 	var slr = []string{"a", "b", "c", "d"}
@@ -221,9 +227,9 @@ func TestMarshalInterfaceListToMultiVariablewList(t *testing.T) {
 }
 
 func TestMarshalInterfaceListSingleVariable(t *testing.T) {
-	var lst = []interface{}{SassNumber{5, "mm"}}
-	var i SassNumber
-	var ir = SassNumber{5, "mm"}
+	var lst = []interface{}{libs.SassNumber{Value: 5, Unit: "mm"}}
+	var i libs.SassNumber
+	var ir = libs.SassNumber{5, "mm"}
 
 	lstm := testMarshal(t, lst)
 	_ = Unmarshal(lstm, &i)
@@ -234,11 +240,11 @@ func TestMarshalInterfaceListSingleVariable(t *testing.T) {
 }
 
 func TestMarshalSassNumber(t *testing.T) {
-	sn := SassNumber{
+	sn := libs.SassNumber{
 		Value: float64(3.5),
 		Unit:  "px",
 	}
-	var sne = SassNumber{}
+	var sne = libs.SassNumber{}
 
 	snm := testMarshal(t, sn)
 	_ = Unmarshal(snm, &sne)
@@ -399,13 +405,13 @@ func TestQuotedStringUnmarshal(t *testing.T) {
 }
 
 func TestOptionalParameters(t *testing.T) {
-	var lst = []interface{}{SassNumber{5, "px"}, "a", true}
-	var i SassNumber
+	var lst = []interface{}{libs.SassNumber{Value: 5, Unit: "px"}, "a", true}
+	var i libs.SassNumber
 	var s string
 	var b bool
 	var s2 string
 	var i2 float64
-	var ir = SassNumber{5, "px"}
+	var ir = libs.SassNumber{Value: 5, Unit: "px"}
 	var sr = string("a")
 	var br = bool(true)
 
@@ -442,13 +448,13 @@ func TestNullUnionSassValue(t *testing.T) {
 
 func TestWrongUnmarshalToFloatType(t *testing.T) {
 	s := "Taylor Swift"
-	var ie SassNumber
+	var ie libs.SassNumber
 
 	sm := testMarshal(t, s)
 	err := Unmarshal(sm, &ie)
 
 	e := "Sassvalue is type string and has value Taylor Swift but expected color.RGBA or SassNumber"
 	if err.Error() != e {
-		t.Errorf("got: %s wanted: %s", err, e)
+		t.Errorf("got:\n%s \nwanted:\n%s", err, e)
 	}
 }

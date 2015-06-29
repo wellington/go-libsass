@@ -26,7 +26,7 @@ func TestFunc_simpletypes(t *testing.T) {
 		Sign: "foo($null, $num, $str, $bool)",
 		Fn: Handler(func(v interface{}, req SassValue, res *SassValue) error {
 			var n interface{}
-			var num SassNumber
+			var num libs.SassNumber
 			var s string
 			var b bool
 			var intf = []interface{}{n, num, s, b}
@@ -48,7 +48,7 @@ func TestFunc_simpletypes(t *testing.T) {
 
 	e := []interface{}{
 		"<nil>",
-		SassNumber{3.0, "px"},
+		libs.SassNumber{Value: 3.0, Unit: "px"},
 		"asdf",
 		false,
 	}
@@ -142,7 +142,7 @@ func TestFunc_complextypes(t *testing.T) {
 	e := []interface{}{
 		"a",
 		"b",
-		SassNumber{1, "mm"},
+		libs.SassNumber{Value: 1, Unit: "mm"},
 		color.RGBA{R: 0x0, G: 0x33, B: 0x0, A: 0x1},
 	}
 	var args interface{}

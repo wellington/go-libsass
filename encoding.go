@@ -96,41 +96,28 @@ func unmarshal(arg SassValue, v interface{}) error {
 			return throwMisMatchTypeError(arg, "bool")
 		}
 	case reflect.Struct:
-		//Check for color
-		if libs.IsColor(sv) {
+		switch {
+		case libs.IsColor(sv):
 			col := libs.Color(sv)
 			f.Set(reflect.ValueOf(col))
-		} else if libs.IsNumber(sv) {
+		case libs.IsNumber(sv):
 			u, err := getSassNumberUnit(arg)
 			if err != nil {
 				return err
 			}
-			sn := SassNumber{
+			sn := libs.SassNumber{
 				Value: libs.Float(sv),
 				Unit:  u,
 			}
 			f.Set(reflect.ValueOf(sn))
-
-		} else {
+		default:
 			return throwMisMatchTypeError(arg, "color.RGBA or SassNumber")
 		}
 	case reflect.Slice:
 		if !libs.IsList(sv) {
 			return throwMisMatchTypeError(arg, "slice")
 		}
-
-		l := libs.Len(sv)
-		newv := reflect.MakeSlice(t, l, l)
-		infs := make([]interface{}, l)
-		for i := range infs {
-			val := libs.Index(sv, i)
-			err := unmarshal(SassValue{value: val}, &infs[i])
-			if err != nil {
-				return err
-			}
-			newv.Index(i).Set(reflect.ValueOf(infs[i]))
-		}
-		f.Set(newv)
+		libs.Slice(arg.Val(), v)
 	default:
 		return errors.New("Unsupported SassValue")
 	}
@@ -191,6 +178,23 @@ func getKind(v interface{}) reflect.Kind {
 }
 
 func noSassNumberUnit(arg SassValue) bool {
+	u := libs.Unit(arg.Val())
+	return u == "" || u == "none"
+}
+
+func getSassNumberUnit(arg SassValue) (string, error) {
+	u := libs.Unit(arg.Val())
+	var err error
+	if noSassNumberUnit(arg) {
+		return u, err
+	}
+	if _, ok := libs.SassUnitConversions[u]; !ok {
+		return u, fmt.Errorf("SassNumber units %s are unsupported", u)
+	}
+	return u, err
+}
+
+/*func noSassNumberUnit(arg SassValue) bool {
 	sv := arg.Val()
 	u := libs.Unit(sv)
 	return u == "" || u == "none"
@@ -210,7 +214,7 @@ func getSassNumberUnit(arg SassValue) (string, error) {
 	}
 
 	return u, err
-}
+}*/
 
 func Marshal(v interface{}) (SassValue, error) {
 	return makevalue(v)
@@ -230,11 +234,7 @@ func makevalue(v interface{}) (SassValue, error) {
 		s := v.(string)
 		return SassValue{value: libs.MakeString(s)}, nil
 	case reflect.Struct: //only SassNumber and color.RGBA are supported
-		if sn, ok := v.(SassNumber); ok {
-			return SassValue{
-				value: libs.MakeNumber(sn.Value, sn.Unit),
-			}, err
-		} else if sn, ok := v.(libs.SassNumber); ok {
+		if sn, ok := v.(libs.SassNumber); ok {
 			return SassValue{
 				value: libs.MakeNumber(sn.Float(), sn.UnitOf()),
 			}, err

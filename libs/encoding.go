@@ -64,10 +64,21 @@ func Slice(usv UnionSassValue, inf interface{}) {
 	if !r.CanSet() {
 		panic("value is not addressable")
 	}
-	d := reflect.MakeSlice(r.Type(), l, l)
+	// if a non-slice is passed, make a slice
+	t := r.Type()
+	if r.Kind() != reflect.Slice {
+		t = reflect.SliceOf(t)
+	}
+	d := reflect.MakeSlice(t, l, l)
 	for i := 0; i < l; i++ {
 		sv := Index(usv, i)
-		rf := reflect.ValueOf(Interface(sv))
+		inf := Interface(sv)
+		rf := reflect.ValueOf(inf)
+		// Special case for nil
+		if inf == nil {
+			d.Index(i).Set(reflect.ValueOf("<nil>"))
+			continue
+		}
 		d.Index(i).Set(rf)
 	}
 	r.Set(d)
