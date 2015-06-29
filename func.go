@@ -1,10 +1,5 @@
 package context
 
-// #include <stdlib.h>
-// #include "sass_context.h"
-//
-import "C"
-
 import (
 	"runtime"
 	"unsafe"
@@ -68,7 +63,7 @@ type Cookie struct {
 	Ctx  interface{}
 }
 
-func (ctx *Context) SetFunc(opts *C.struct_Sass_Options) {
+func (ctx *Context) SetFunc(goopts libs.SassOptions) {
 	cookies := make([]libs.Cookie, len(handlers)+len(ctx.Cookies))
 	// Append registered handlers to cookie array
 	for i, h := range handlers {
@@ -94,6 +89,5 @@ func (ctx *Context) SetFunc(opts *C.struct_Sass_Options) {
 			unsafe.Pointer(&cookies[i]))
 		gofns[i] = fn
 	}
-	goopts := (libs.SassOptions)(unsafe.Pointer(opts))
 	libs.BindFuncs(goopts, gofns)
 }

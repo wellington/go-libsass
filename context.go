@@ -113,7 +113,7 @@ func (ctx *Context) Init(goopts libs.SassOptions) *C.struct_Sass_Options {
 
 	ctx.SetHeaders(goopts)
 	ctx.SetImporters(goopts)
-	ctx.SetFunc(opts)
+	ctx.SetFunc(goopts)
 	// prec := C.int(ctx.Precision)
 	// C.sass_option_set_precision(opts, prec)
 	libs.SetIncludePaths(goopts, ctx.IncludePaths)
