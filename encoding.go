@@ -11,8 +11,9 @@ import (
 	"github.com/wellington/go-libsass/libs"
 )
 
-// #include "sass_context.h"
-import "C"
+var (
+	ErrSassNumberNoUnit = errors.New("SassNumber has no units")
+)
 
 type SassValue struct {
 	value libs.UnionSassValue
@@ -186,35 +187,13 @@ func getSassNumberUnit(arg SassValue) (string, error) {
 	u := libs.Unit(arg.Val())
 	var err error
 	if noSassNumberUnit(arg) {
-		return u, err
+		return u, ErrSassNumberNoUnit
 	}
 	if _, ok := libs.SassUnitConversions[u]; !ok {
 		return u, fmt.Errorf("SassNumber units %s are unsupported", u)
 	}
 	return u, err
 }
-
-/*func noSassNumberUnit(arg SassValue) bool {
-	sv := arg.Val()
-	u := libs.Unit(sv)
-	return u == "" || u == "none"
-}
-
-func getSassNumberUnit(arg SassValue) (string, error) {
-	sv := arg.Val()
-	u := libs.Unit(sv)
-	err := error(nil)
-
-	if u == "" || u == "none" {
-		err = fmt.Errorf("SassNumber has no units.")
-	}
-
-	if _, ok := sassUnitConversions[u]; !ok {
-		err = fmt.Errorf("SassNumber units %s are unsupported", u)
-	}
-
-	return u, err
-}*/
 
 func Marshal(v interface{}) (SassValue, error) {
 	return makevalue(v)
