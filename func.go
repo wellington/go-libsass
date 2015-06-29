@@ -6,7 +6,6 @@ package context
 import "C"
 
 import (
-	"reflect"
 	"runtime"
 	"unsafe"
 
@@ -53,20 +52,9 @@ func (ctx *Context) SetFunc(opts *C.struct_Sass_Options) {
 			Ctx:  ctx,
 		}
 	}
+	// disable garbage collection of cookies. These need to
+	// be manually freed in the wrapper
 	runtime.SetFinalizer(&cookies, nil)
-	//ctx.Cookies = cookies
-	size := C.size_t(len(ctx.Cookies))
-	fns := C.sass_make_function_list(size)
-
-	// Send cookies to libsass
-	// Create a slice that's backed by a C array
-	length := len(ctx.Cookies) + 1
-	hdr := reflect.SliceHeader{
-		Data: uintptr(unsafe.Pointer(fns)),
-		Len:  length, Cap: length,
-	}
-	_ = hdr
-	//gofns := *(*[]C.Sass_Function_Entry)(unsafe.Pointer(&hdr))
 	gofns := make([]libs.SassFunc, len(cookies))
 	for i, cookie := range cookies {
 		fn := libs.SassMakeFunction(cookie.Sign,
@@ -75,6 +63,4 @@ func (ctx *Context) SetFunc(opts *C.struct_Sass_Options) {
 	}
 	goopts := (libs.SassOptions)(unsafe.Pointer(opts))
 	libs.BindFuncs(goopts, gofns)
-	// C.sass_option_set_c_functions(opts, (C.Sass_Function_List)(unsafe.Pointer(&gofns[0])))
-
 }
