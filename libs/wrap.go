@@ -170,6 +170,11 @@ func SassMakeFileCompiler(gofc SassFileContext) SassCompiler {
 	return (SassCompiler)(sc)
 }
 
+func SassMakeDataCompiler(godc SassDataContext) SassCompiler {
+	dc := C.sass_make_data_compiler(godc)
+	return (SassCompiler)(dc)
+}
+
 type SassCompiler *C.struct_Sass_Compiler
 
 func SassCompilerExecute(c SassCompiler) {

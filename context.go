@@ -1,10 +1,5 @@
 package context
 
-// #include <stdlib.h>
-// #include "sass_context.h"
-//
-import "C"
-
 import (
 	"bytes"
 	"errors"
@@ -17,8 +12,6 @@ import (
 
 	"github.com/wellington/go-libsass/libs"
 	"github.com/wellington/spritewell"
-
-	"unsafe"
 )
 
 // Context handles the interactions with libsass.  Context
@@ -89,70 +82,51 @@ func NewContext() *Context {
 	return &c
 }
 
-type OldSassOptions C.struct_Sass_Options
-
-func NewSassOptions() *OldSassOptions {
-	copts := C.sass_make_options()
-	return (*OldSassOptions)(copts)
-}
-
 // Init validates options in the struct and returns a Sass Options.
-func (ctx *Context) Init(goopts libs.SassOptions) *C.struct_Sass_Options {
-	opts := (*C.struct_Sass_Options)(unsafe.Pointer(goopts))
+func (ctx *Context) Init(goopts libs.SassOptions) libs.SassOptions {
 	if ctx.Precision == 0 {
 		ctx.Precision = 5
 	}
-	imgpath := C.CString(ctx.ImageDir)
 
-	defer func() {
-		C.free(unsafe.Pointer(imgpath))
-		// C.free(unsafe.Pointer(cc))
-		// C.sass_delete_data_context(dc)
-	}()
 	Mixins(ctx)
 
 	ctx.SetHeaders(goopts)
 	ctx.SetImporters(goopts)
 	ctx.SetFunc(goopts)
-	// prec := C.int(ctx.Precision)
-	// C.sass_option_set_precision(opts, prec)
 	libs.SetIncludePaths(goopts, ctx.IncludePaths)
 	libs.SassOptionSetPrecision(goopts, ctx.Precision)
 	libs.SassOptionSetOutputStyle(goopts, ctx.OutputStyle)
 	libs.SassOptionSetSourceComments(goopts, ctx.Comments)
-	return opts
+	return goopts
 }
 
-func (c *Context) FileCompile(path string, out io.Writer) error {
-	defer c.Reset()
-	cpath := C.CString(path)
-	fc := C.sass_make_file_context(cpath)
-	defer C.sass_delete_file_context(fc)
-	gofc := (libs.SassFileContext)(unsafe.Pointer(fc))
+func (ctx *Context) FileCompile(path string, out io.Writer) error {
+	defer ctx.Reset()
+	gofc := libs.SassMakeFileContext(path)
 	goopts := libs.SassFileContextGetOptions(gofc)
-	opts := c.Init(goopts)
+	ctx.Init(goopts)
 	//os.PathListSeparator
-	incs := strings.Join(c.IncludePaths, string(os.PathListSeparator))
-	C.sass_option_set_include_path(opts, C.CString(incs))
-	C.sass_file_context_set_options(fc, opts)
-	cc := C.sass_file_context_get_context(fc)
-	gocc := (libs.SassContext)(unsafe.Pointer(cc))
-	compiler := C.sass_make_file_compiler(fc)
-	C.sass_compiler_parse(compiler)
-	c.ResolvedImports = libs.GetImportList(gocc)
-	C.sass_compiler_execute(compiler)
-	defer C.sass_delete_compiler(compiler)
-	cout := C.GoString(C.sass_context_get_output_string(cc))
-	io.WriteString(out, cout)
-	c.Status = int(C.sass_context_get_error_status(cc))
-	errJson := C.sass_context_get_error_json(cc)
-	err := c.ProcessSassError([]byte(C.GoString(errJson)))
+	incs := strings.Join(ctx.IncludePaths, string(os.PathListSeparator))
+	libs.SassOptionSetIncludePath(goopts, incs)
+	libs.SassFileContextSetOptions(gofc, goopts)
+	gocc := libs.SassFileContextGetContext(gofc)
+	gocompiler := libs.SassMakeFileCompiler(gofc)
+	libs.SassCompilerParse(gocompiler)
+	ctx.ResolvedImports = libs.GetImportList(gocc)
+	libs.SassCompilerExecute(gocompiler)
+	defer libs.SassDeleteCompiler(gocompiler)
+
+	goout := libs.SassContextGetOutputString(gocc)
+	io.WriteString(out, goout)
+	ctx.Status = libs.SassContextGetErrorStatus(gocc)
+	errJson := libs.SassContextGetErrorJSON(gocc)
+	err := ctx.ProcessSassError([]byte(errJson))
 	if err != nil {
 		return err
 	}
-	if c.error() != "" {
+	if ctx.error() != "" {
 		// TODO: this is weird, make something more idiomatic*/
-		return errors.New(c.error())
+		return errors.New(ctx.error())
 	}
 
 	return nil
@@ -171,32 +145,23 @@ func (ctx *Context) Compile(in io.Reader, out io.Writer) error {
 	if len(bs) == 0 {
 		return errors.New("No input provided")
 	}
-	src := C.CString(string(bs))
 
-	dc := C.sass_make_data_context(src)
-	defer C.sass_delete_data_context(dc)
-
-	godc := (libs.SassDataContext)(unsafe.Pointer(dc))
+	godc := libs.SassMakeDataContext(string(bs))
 	goopts := libs.SassDataContextGetOptions(godc)
-	opts := ctx.Init(goopts)
+	ctx.Init(goopts)
+	libs.SassDataContextSetOptions(godc, goopts)
+	goctx := libs.SassDataContextGetContext(godc)
+	gocompiler := libs.SassMakeDataCompiler(godc)
+	libs.SassCompilerParse(gocompiler)
+	libs.SassCompilerExecute(gocompiler)
+	defer libs.SassDeleteCompiler(gocompiler)
 
-	// TODO: Manually free options memory without throwing
-	// malloc errors
-	// defer C.free(unsafe.Pointer(opts))
-	C.sass_data_context_set_options(dc, opts)
-	cc := C.sass_data_context_get_context(dc)
-	compiler := C.sass_make_data_compiler(dc)
+	goout := libs.SassContextGetOutputString(goctx)
+	io.WriteString(out, goout)
 
-	C.sass_compiler_parse(compiler)
-	C.sass_compiler_execute(compiler)
-	defer C.sass_delete_compiler(compiler)
-
-	cout := C.GoString(C.sass_context_get_output_string(cc))
-	io.WriteString(out, cout)
-
-	ctx.Status = int(C.sass_context_get_error_status(cc))
-	errJSON := C.sass_context_get_error_json(cc)
-	err = ctx.ProcessSassError([]byte(C.GoString(errJSON)))
+	ctx.Status = libs.SassContextGetErrorStatus(goctx)
+	errJSON := libs.SassContextGetErrorJSON(goctx)
+	err = ctx.ProcessSassError([]byte(errJSON))
 
 	if err != nil {
 		return err
