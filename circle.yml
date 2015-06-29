@@ -9,6 +9,8 @@ checkout:
     - git submodule update --init
 dependencies:
   pre:
+    - mkdir -p ${GOPATH%%:*}/src/github.com/wellington/go-libsass/libs
+    - cp -R $HOME/$CIRCLE_PROJECT_REPONAME/libs ${GOPATH%%:*}/src/github.com/wellington/go-libsass/libs
     #- make deps
     #- echo $PKG_CONFIG_PATH
   override:
