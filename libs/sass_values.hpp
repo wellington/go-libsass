@@ -1,3 +1,3 @@
 #ifndef USE_LIBSASS
-#include "../libsass-src/sass_values.hpp"
+#include "../libsass-build/sass_values.hpp"
 #endif
