@@ -3,12 +3,9 @@ machine:
     CC: gcc
     CXX: g++
     PKG_CONFIG_PATH: $HOME/$CIRCLE_PROJECT_REPONAME/lib/pkgconfig
-checkout:
-  post:
-    - git submodule sync
-    - git submodule update --init
 dependencies:
   pre:
+    - make deps
     # hacks to make circle's gopath to work with go
     - rm -rf ${GOPATH%%:*}/src/github.com/wellington
     - mkdir -p ${GOPATH%%:*}/src/github.com/wellington
