@@ -7,7 +7,9 @@ package libs
 //
 // union Sass_Value* CallSassFunction( union Sass_Value* s_args, Sass_Function_Entry cb, struct Sass_Options* opts ) {
 //     void* cookie = sass_function_get_cookie(cb);
-//     return GoBridge(s_args, cookie);
+//     union Sass_Value* ret;
+//     ret = GoBridge(s_args, cookie);
+//     return ret;
 // }
 //
 import "C"
