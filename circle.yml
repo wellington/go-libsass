@@ -14,6 +14,7 @@ dependencies:
     #- make deps
     #- echo $PKG_CONFIG_PATH
   override:
+    - go get -f -u
     - go build -i
 test:
   override:
