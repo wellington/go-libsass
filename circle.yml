@@ -14,7 +14,9 @@ dependencies:
     #- echo $PKG_CONFIG_PATH
   override:
     - go get -t -d -v ./...
-    - go build -i
+    # - go build -i is a lie
+  post:
+    - go test -i -race
 test:
   override:
-    - go test ./...
+    - go test -race ./...
