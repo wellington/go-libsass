@@ -2,7 +2,7 @@
 
 package libs
 
-// #cgo CFLAGS: -DUSE_LIBSASS
-// #cgo LDFLAGS: -lsass -ldl -lm
+// #cgo CPPFLAGS: -DUSE_LIBSASS
+// #cgo LDFLAGS: -lsass
 //
 import "C"
