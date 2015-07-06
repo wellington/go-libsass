@@ -32,4 +32,5 @@ test:
 	go test -race .
 
 clean:
-	rm -rf libsass-build lib include
+	rm -rf lib include
+	git submodule update
