@@ -18,14 +18,14 @@ version:
 
 libsass-src: fetch
 
-libsass-tmp: libsass-src $(SOURCES)
+libsass-tmp: clean libsass-src $(SOURCES)
 	# generate configure scripts
 	- cd libsass-src; autoreconf -fvi
 	mkdir -p libsass-tmp
 	# configure and install libsass
 	cd libsass-tmp; \
 		../libsass-src/configure --disable-shared \
-			--prefix=$(shell pwd)/libsass-tmp --disable-silent-rules \
+			--prefix=$(shell pwd) --disable-silent-rules \
 			--disable-dependency-tracking
 
 .PHONY: libsass-build
@@ -38,13 +38,13 @@ libsass-build:
 
 lib: libsass-tmp
 	mv libsass-src/sass_version.h libsass-src/sass_version.hold
-	cp libsass-build/sass_version.h libsass-src/sass_version.h
-	- cd libsass-build && make install
+	cp libsass-tmp/sass_version.h libsass-src/sass_version.h
+	- cd libsass-tmp && make install
 	mv libsass-src/sass_version.hold libsass-src/sass_version.h
 
 .PHONY: test
 test:
-	go test -race .
+	go test -tags dev -race .
 
 cleanfiles:
 	rm -rf lib include libsass-src libsass-tmp
