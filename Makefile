@@ -1,6 +1,7 @@
 export PKG_CONFIG_PATH=$(shell pwd)/lib/pkgconfig
 
 SOURCES=libsass-src/*.cpp libsass-src/*.c libsass-src/*.h libsass-src/*.hpp
+CPSOURCES=libsass-build/*.cpp libsass-build/*.c libsass-build/*.h libsass-build/*.hpp
 
 install: deps
 
@@ -30,8 +31,10 @@ libsass-tmp: clean libsass-src $(SOURCES)
 
 .PHONY: libsass-build
 libsass-build:
+
 	# copy the updated source files into libsass-build
 	mkdir -p libsass-build
+	rm $(CPSOURCES)
 	cp $(SOURCES) libsass-build
 	#VERSION = $(shell cd libsass-src; ./version.sh)
 	#manually update the version
