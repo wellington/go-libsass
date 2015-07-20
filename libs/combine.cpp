@@ -5,4 +5,5 @@
 #include "../libsass-build/emitter.cpp"
 #include "../libsass-build/listize.cpp"
 #include "../libsass-build/output.cpp"
+#include "../libsass-build/plugins.cpp"
 #endif
