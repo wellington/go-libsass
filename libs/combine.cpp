@@ -7,4 +7,5 @@
 #include "../libsass-build/output.cpp"
 #include "../libsass-build/plugins.cpp"
 #include "../libsass-build/remove_placeholders.cpp"
+#include "../libsass-build/sass_util.cpp"
 #endif
