@@ -6,4 +6,5 @@
 #include "../libsass-build/listize.cpp"
 #include "../libsass-build/output.cpp"
 #include "../libsass-build/plugins.cpp"
+#include "../libsass-build/remove_placeholders.cpp"
 #endif
