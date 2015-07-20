@@ -8,4 +8,6 @@
 #include "../libsass-build/plugins.cpp"
 #include "../libsass-build/remove_placeholders.cpp"
 #include "../libsass-build/sass_util.cpp"
+#include "../libsass-build/units.cpp"
+#include "../libsass-build/utf8_string.cpp"
 #endif
