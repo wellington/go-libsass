@@ -1,5 +1,6 @@
 #ifndef USE_LIBSASS
 #include "../libsass-build/ast.cpp"
+#include "../libsass-build/base64vlq.cpp"
 #include "../libsass-build/util.cpp"
 #include "../libsass-build/context.cpp"
 #include "../libsass-build/position.cpp"
