@@ -1,5 +1,5 @@
 #ifndef USE_LIBSASS
-#include "../libsass-build/sass_values.hpp"
+#include "../libsass-build/include/sass_values.h"
 #else
 #include <sass_values.h>
 #endif
