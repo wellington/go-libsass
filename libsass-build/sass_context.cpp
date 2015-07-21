@@ -19,7 +19,6 @@
 
 extern "C" {
   using namespace std;
-  using namespace Sass;
 
   // Input behaviours
   enum Sass_Input_Style {
@@ -162,9 +161,9 @@ extern "C" {
     // original c context
     Sass_Context* c_ctx;
     // Sass::Context
-    Context* cpp_ctx;
+    Sass::Context* cpp_ctx;
     // Sass::Block
-    Block* root;
+    Sass::Block* root;
   };
 
   static void copy_options(struct Sass_Options* to, struct Sass_Options* from) { *to = *from; }
@@ -175,7 +174,7 @@ extern "C" {
   #define IMPLEMENT_SASS_OPTION_STRING_ACCESSOR(type, option) \
     type ADDCALL sass_option_get_##option (struct Sass_Options* options) { return options->option; } \
     void ADDCALL sass_option_set_##option (struct Sass_Options* options, type option) \
-    { free(options->option); options->option = option ? sass_strdup(option) : 0; }
+    { free(options->option); options->option = option ? Sass::sass_strdup(option) : 0; }
 
   #define IMPLEMENT_SASS_CONTEXT_GETTER(type, option) \
     type ADDCALL sass_context_get_##option (struct Sass_Context* ctx) { return ctx->option; }
@@ -191,11 +190,11 @@ extern "C" {
   static void copy_strings(const std::vector<std::string>& strings, char*** array) {
     int num = static_cast<int>(strings.size());
     char** arr = (char**) malloc(sizeof(char*) * (num + 1));
-    if (arr == 0) throw(bad_alloc());
+    if (arr == 0) throw(Sass::bad_alloc());
 
     for(int i = 0; i < num; i++) {
       arr[i] = (char*) malloc(sizeof(char) * (strings[i].size() + 1));
-      if (arr[i] == 0) throw(bad_alloc());
+      if (arr[i] == 0) throw(Sass::bad_alloc());
       std::copy(strings[i].begin(), strings[i].end(), arr[i]);
       arr[i][strings[i].size()] = '\0';
     }
@@ -221,18 +220,18 @@ extern "C" {
     try {
      throw;
     }
-    catch (Sass_Error& e) {
-      stringstream msg_stream;
-      string cwd(Sass::File::get_cwd());
+    catch (Sass::Sass_Error& e) {
+      Sass::stringstream msg_stream;
+      Sass::string cwd(Sass::File::get_cwd());
       JsonNode* json_err = json_mkobject();
       json_append_member(json_err, "status", json_mknumber(1));
       json_append_member(json_err, "file", json_mkstring(e.pstate.path));
       json_append_member(json_err, "line", json_mknumber(e.pstate.line+1));
       json_append_member(json_err, "column", json_mknumber(e.pstate.column+1));
       json_append_member(json_err, "message", json_mkstring(e.message.c_str()));
-      string rel_path(Sass::File::resolve_relative_path(e.pstate.path, cwd, cwd));
+      Sass::string rel_path(Sass::File::resolve_relative_path(e.pstate.path, cwd, cwd));
 
-      string msg_prefix("Error: ");
+      Sass::string msg_prefix("Error: ");
       bool got_newline = false;
       msg_stream << msg_prefix;
       for (char chr : e.message) {
@@ -241,17 +240,17 @@ extern "C" {
         } else if (chr == '\n') {
           got_newline = true;
         } else if (got_newline) {
-          msg_stream << string(msg_prefix.size(), ' ');
+          msg_stream << Sass::string(msg_prefix.size(), ' ');
           got_newline = false;
         }
         msg_stream << chr;
       }
       if (!got_newline) msg_stream << "\n";
-      msg_stream << string(msg_prefix.size(), ' ');
+      msg_stream << Sass::string(msg_prefix.size(), ' ');
       msg_stream << " on line " << e.pstate.line+1 << " of " << rel_path << "\n";
 
       // now create the code trace (ToDo: maybe have util functions?)
-      if (e.pstate.line != string::npos && e.pstate.column != string::npos) {
+      if (e.pstate.line != Sass::string::npos && e.pstate.column != Sass::string::npos) {
         size_t line = e.pstate.line;
         const char* line_beg = e.pstate.src;
         while (line_beg && *line_beg && line) {
@@ -268,15 +267,15 @@ extern "C" {
         size_t move_in = e.pstate.column > max_left ? e.pstate.column - max_left : 0;
         size_t shorten = (line_end - line_beg) - move_in > max_right ?
                          (line_end - line_beg) - move_in - max_right : 0;
-        msg_stream << ">> " << string(line_beg + move_in, line_end - shorten) << "\n";
-        msg_stream << "   " << string(e.pstate.column - move_in, '-') << "^\n";
+        msg_stream << ">> " << Sass::string(line_beg + move_in, line_end - shorten) << "\n";
+        msg_stream << "   " << Sass::string(e.pstate.column - move_in, '-') << "^\n";
       }
 
       c_ctx->error_json = json_stringify(json_err, "  ");;
-      c_ctx->error_message = sass_strdup(msg_stream.str().c_str());
-      c_ctx->error_text = sass_strdup(e.message.c_str());
+      c_ctx->error_message = Sass::sass_strdup(msg_stream.str().c_str());
+      c_ctx->error_text = Sass::sass_strdup(e.message.c_str());
       c_ctx->error_status = 1;
-      c_ctx->error_file = sass_strdup(e.pstate.path);
+      c_ctx->error_file = Sass::sass_strdup(e.pstate.path);
       c_ctx->error_line = e.pstate.line+1;
       c_ctx->error_column = e.pstate.column+1;
       c_ctx->error_src = e.pstate.src;
@@ -284,57 +283,57 @@ extern "C" {
       c_ctx->source_map_string = 0;
       json_delete(json_err);
     }
-    catch(bad_alloc& ba) {
-      stringstream msg_stream;
+    catch(Sass::bad_alloc& ba) {
+      Sass::stringstream msg_stream;
       JsonNode* json_err = json_mkobject();
-      msg_stream << "Unable to allocate memory: " << ba.what() << endl;
+      msg_stream << "Unable to allocate memory: " << ba.what() << Sass::endl;
       json_append_member(json_err, "status", json_mknumber(2));
       json_append_member(json_err, "message", json_mkstring(ba.what()));
       c_ctx->error_json = json_stringify(json_err, "  ");;
-      c_ctx->error_message = sass_strdup(msg_stream.str().c_str());
-      c_ctx->error_text = sass_strdup(ba.what());
+      c_ctx->error_message = Sass::sass_strdup(msg_stream.str().c_str());
+      c_ctx->error_text = Sass::sass_strdup(ba.what());
       c_ctx->error_status = 2;
       c_ctx->output_string = 0;
       c_ctx->source_map_string = 0;
       json_delete(json_err);
     }
     catch (std::exception& e) {
-      stringstream msg_stream;
+      Sass::stringstream msg_stream;
       JsonNode* json_err = json_mkobject();
-      msg_stream << "Error: " << e.what() << endl;
+      msg_stream << "Error: " << e.what() << Sass::endl;
       json_append_member(json_err, "status", json_mknumber(3));
       json_append_member(json_err, "message", json_mkstring(e.what()));
       c_ctx->error_json = json_stringify(json_err, "  ");;
-      c_ctx->error_message = sass_strdup(msg_stream.str().c_str());
-      c_ctx->error_text = sass_strdup(e.what());
+      c_ctx->error_message = Sass::sass_strdup(msg_stream.str().c_str());
+      c_ctx->error_text = Sass::sass_strdup(e.what());
       c_ctx->error_status = 3;
       c_ctx->output_string = 0;
       c_ctx->source_map_string = 0;
       json_delete(json_err);
     }
-    catch (string& e) {
-      stringstream msg_stream;
+    catch (Sass::string& e) {
+      Sass::stringstream msg_stream;
       JsonNode* json_err = json_mkobject();
-      msg_stream << "Error: " << e << endl;
+      msg_stream << "Error: " << e << Sass::endl;
       json_append_member(json_err, "status", json_mknumber(4));
       json_append_member(json_err, "message", json_mkstring(e.c_str()));
       c_ctx->error_json = json_stringify(json_err, "  ");;
-      c_ctx->error_message = sass_strdup(msg_stream.str().c_str());
-      c_ctx->error_text = sass_strdup(e.c_str());
+      c_ctx->error_message = Sass::sass_strdup(msg_stream.str().c_str());
+      c_ctx->error_text = Sass::sass_strdup(e.c_str());
       c_ctx->error_status = 4;
       c_ctx->output_string = 0;
       c_ctx->source_map_string = 0;
       json_delete(json_err);
     }
     catch (...) {
-      stringstream msg_stream;
+      Sass::stringstream msg_stream;
       JsonNode* json_err = json_mkobject();
-      msg_stream << "Unknown error occurred" << endl;
+      msg_stream << "Unknown error occurred" << Sass::endl;
       json_append_member(json_err, "status", json_mknumber(5));
       json_append_member(json_err, "message", json_mkstring("unknown"));
       c_ctx->error_json = json_stringify(json_err, "  ");;
-      c_ctx->error_message = sass_strdup(msg_stream.str().c_str());
-      c_ctx->error_text = sass_strdup("unknown");
+      c_ctx->error_message = Sass::sass_strdup(msg_stream.str().c_str());
+      c_ctx->error_text = Sass::sass_strdup("unknown");
       c_ctx->error_status = 5;
       c_ctx->output_string = 0;
       c_ctx->source_map_string = 0;
@@ -344,13 +343,13 @@ extern "C" {
   }
 
   // generic compilation function (not exported, use file/data compile instead)
-  static Sass_Compiler* sass_prepare_context (Sass_Context* c_ctx, Context::Data cpp_opt) throw()
+  static Sass_Compiler* sass_prepare_context (Sass_Context* c_ctx, Sass::Context::Data cpp_opt) throw()
   {
     try {
 
       // get input/output path from options
-      string input_path = safe_str(c_ctx->input_path);
-      string output_path = safe_str(c_ctx->output_path);
+      Sass::string input_path = safe_str(c_ctx->input_path);
+      Sass::string output_path = safe_str(c_ctx->output_path);
       // maybe we can extract an output path from input path
       if (output_path == "" && input_path != "") {
         int lastindex = static_cast<int>(input_path.find_last_of("."));
@@ -363,7 +362,7 @@ extern "C" {
       size_t inc_size = 0; while (inc) { inc_size ++; inc = inc->next; }
       // create char* array to hold all paths plus null terminator
       const char** include_paths = (const char**) calloc(inc_size + 1, sizeof(char*));
-      if (include_paths == 0) throw(bad_alloc());
+      if (include_paths == 0) throw(Sass::bad_alloc());
       // reset iterator
       inc = c_ctx->include_paths;
       // copy over the paths
@@ -378,7 +377,7 @@ extern "C" {
       size_t imp_size = 0; while (imp) { imp_size ++; imp = imp->next; }
       // create char* array to hold all paths plus null terminator
       const char** plugin_paths = (const char**) calloc(imp_size + 1, sizeof(char*));
-      if (plugin_paths == 0) throw(bad_alloc());
+      if (plugin_paths == 0) throw(Sass::bad_alloc());
       // reset iterator
       imp = c_ctx->plugin_paths;
       // copy over the paths
@@ -392,7 +391,7 @@ extern "C" {
              .c_options(c_ctx)
              .input_path(input_path)
              .output_path(output_path)
-             .output_style((Output_Style) c_ctx->output_style)
+             .output_style((Sass::Output_Style) c_ctx->output_style)
              .is_indented_syntax_src(c_ctx->is_indented_syntax_src)
              .source_comments(c_ctx->source_comments)
              .source_map_file(safe_str(c_ctx->source_map_file))
@@ -404,14 +403,14 @@ extern "C" {
              .plugin_paths_c_str(c_ctx->plugin_path)
              // .include_paths_array(include_paths)
              // .plugin_paths_array(plugin_paths)
-             .include_paths(vector<string>())
-             .plugin_paths(vector<string>())
+             .include_paths(vector<Sass::string>())
+             .plugin_paths(vector<Sass::string>())
              .precision(c_ctx->precision)
              .linefeed(c_ctx->linefeed)
              .indent(c_ctx->indent);
 
       // create new c++ Context
-      Context* cpp_ctx = new Context(cpp_opt);
+      Sass::Context* cpp_ctx = new Sass::Context(cpp_opt);
       // free intermediate data
       free(include_paths);
       free(plugin_paths);
@@ -451,8 +450,8 @@ extern "C" {
       // reset error position
       c_ctx->error_src = 0;
       c_ctx->error_file = 0;
-      c_ctx->error_line = string::npos;
-      c_ctx->error_column = string::npos;
+      c_ctx->error_line = Sass::string::npos;
+      c_ctx->error_column = Sass::string::npos;
 
       // allocate a new compiler instance
       Sass_Compiler* compiler = (struct Sass_Compiler*) calloc(1, sizeof(struct Sass_Compiler));
@@ -475,13 +474,13 @@ extern "C" {
 
   }
 
-  static Block* sass_parse_block (Sass_Compiler* compiler) throw()
+  static Sass::Block* sass_parse_block (Sass_Compiler* compiler) throw()
   {
 
     // assert valid pointer
     if (compiler == 0) return 0;
     // The cpp context must be set by now
-    Context* cpp_ctx = compiler->cpp_ctx;
+    Sass::Context* cpp_ctx = compiler->cpp_ctx;
     Sass_Context* c_ctx = compiler->c_ctx;
     // We will take care to wire up the rest
     compiler->cpp_ctx->c_compiler = compiler;
@@ -490,11 +489,11 @@ extern "C" {
     try {
 
       // get input/output path from options
-      string input_path = safe_str(c_ctx->input_path);
-      string output_path = safe_str(c_ctx->output_path);
+      Sass::string input_path = safe_str(c_ctx->input_path);
+      Sass::string output_path = safe_str(c_ctx->output_path);
 
       // parsed root block
-      Block* root = 0;
+      Sass::Block* root = 0;
 
       // maybe skip some entries of included files
       // we do not include stdin for data contexts
@@ -527,7 +526,7 @@ extern "C" {
   }
 
   // generic compilation function (not exported, use file/data compile instead)
-  static int sass_compile_context (Sass_Context* c_ctx, Context::Data cpp_opt)
+  static int sass_compile_context (Sass_Context* c_ctx, Sass::Context::Data cpp_opt)
   {
 
     // prepare sass compiler with context and options
@@ -556,7 +555,7 @@ extern "C" {
   Sass_Options* ADDCALL sass_make_options (void)
   {
     struct Sass_Options* options = (struct Sass_Options*) calloc(1, sizeof(struct Sass_Options));
-    if (options == 0) { cerr << "Error allocating memory for options" << endl; return 0; }
+    if (options == 0) { Sass::cerr << "Error allocating memory for options" << Sass::endl; return 0; }
     init_options(options);
     return options;
   }
@@ -564,7 +563,7 @@ extern "C" {
   Sass_File_Context* ADDCALL sass_make_file_context(const char* input_path)
   {
     struct Sass_File_Context* ctx = (struct Sass_File_Context*) calloc(1, sizeof(struct Sass_File_Context));
-    if (ctx == 0) { cerr << "Error allocating memory for file context" << endl; return 0; }
+    if (ctx == 0) { Sass::cerr << "Error allocating memory for file context" << Sass::endl; return 0; }
     ctx->type = SASS_CONTEXT_FILE;
     init_options(ctx);
     try {
@@ -580,7 +579,7 @@ extern "C" {
   Sass_Data_Context* ADDCALL sass_make_data_context(char* source_string)
   {
     struct Sass_Data_Context* ctx = (struct Sass_Data_Context*) calloc(1, sizeof(struct Sass_Data_Context));
-    if (ctx == 0) { cerr << "Error allocating memory for data context" << endl; return 0; }
+    if (ctx == 0) { Sass::cerr << "Error allocating memory for data context" << Sass::endl; return 0; }
     ctx->type = SASS_CONTEXT_DATA;
     init_options(ctx);
     try {
@@ -596,7 +595,7 @@ extern "C" {
   struct Sass_Compiler* ADDCALL sass_make_file_compiler (struct Sass_File_Context* c_ctx)
   {
     if (c_ctx == 0) return 0;
-    Context::Data cpp_opt = Context::Data();
+    Sass::Context::Data cpp_opt = Sass::Context::Data();
     cpp_opt.entry_point(c_ctx->input_path);
     return sass_prepare_context(c_ctx, cpp_opt);
   }
@@ -604,7 +603,7 @@ extern "C" {
   struct Sass_Compiler* ADDCALL sass_make_data_compiler (struct Sass_Data_Context* c_ctx)
   {
     if (c_ctx == 0) return 0;
-    Context::Data cpp_opt = Context::Data();
+    Sass::Context::Data cpp_opt = Sass::Context::Data();
     cpp_opt.source_c_str(c_ctx->source_string);
     c_ctx->source_string = 0; // passed away
     return sass_prepare_context(c_ctx, cpp_opt);
@@ -616,7 +615,7 @@ extern "C" {
     Sass_Context* c_ctx = data_ctx;
     if (c_ctx->error_status)
       return c_ctx->error_status;
-    Context::Data cpp_opt = Context::Data();
+    Sass::Context::Data cpp_opt = Sass::Context::Data();
     try {
       if (data_ctx->source_string == 0) { throw(runtime_error("Data context has no source string")); }
       if (*data_ctx->source_string == 0) { throw(runtime_error("Data context has empty source string")); }
@@ -633,7 +632,7 @@ extern "C" {
     Sass_Context* c_ctx = file_ctx;
     if (c_ctx->error_status)
       return c_ctx->error_status;
-    Context::Data cpp_opt = Context::Data();
+    Sass::Context::Data cpp_opt = Sass::Context::Data();
     try {
       if (file_ctx->input_path == 0) { throw(runtime_error("File context has no input path")); }
       if (*file_ctx->input_path == 0) { throw(runtime_error("File context has empty input path")); }
@@ -669,8 +668,8 @@ extern "C" {
     if (compiler->c_ctx->error_status)
       return compiler->c_ctx->error_status;
     compiler->state = SASS_COMPILER_EXECUTED;
-    Context* cpp_ctx = compiler->cpp_ctx;
-    Block* root = compiler->root;
+    Sass::Context* cpp_ctx = compiler->cpp_ctx;
+    Sass::Block* root = compiler->root;
     // compile the parsed root block
     try { compiler->c_ctx->output_string = cpp_ctx->compile_block(root); }
     // pass catched errors to generic error handler
@@ -751,7 +750,7 @@ extern "C" {
   static void sass_clear_context (struct Sass_Context* ctx)
   {
     if (ctx == 0) return;
-    // release the allocated memory (mostly via sass_strdup)
+    // release the allocated memory (mostly via Sass::sass_strdup)
     if (ctx->output_string)     free(ctx->output_string);
     if (ctx->source_map_string) free(ctx->source_map_string);
     if (ctx->error_message)     free(ctx->error_message);
@@ -787,7 +786,7 @@ extern "C" {
     if (compiler == 0) {
       return;
     }
-    Context* cpp_ctx = compiler->cpp_ctx;
+    Sass::Context* cpp_ctx = compiler->cpp_ctx;
     if (cpp_ctx) delete(cpp_ctx);
     compiler->cpp_ctx = 0;
     free(compiler);
@@ -880,7 +879,7 @@ extern "C" {
 
     struct string_list* include_path = (struct string_list*) calloc(1, sizeof(struct string_list));
     if (include_path == 0) return;
-    include_path->string = path ? sass_strdup(path) : 0;
+    include_path->string = path ? Sass::sass_strdup(path) : 0;
     struct string_list* last = options->include_paths;
     if (!options->include_paths) {
       options->include_paths = include_path;
@@ -898,7 +897,7 @@ extern "C" {
 
     struct string_list* plugin_path = (struct string_list*) calloc(1, sizeof(struct string_list));
     if (plugin_path == 0) return;
-    plugin_path->string = path ? sass_strdup(path) : 0;
+    plugin_path->string = path ? Sass::sass_strdup(path) : 0;
     struct string_list* last = options->plugin_paths;
     if (!options->plugin_paths) {
       options->plugin_paths = plugin_path;
