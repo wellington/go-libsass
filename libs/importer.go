@@ -30,6 +30,7 @@ import (
 	"unsafe"
 )
 
+// BindImporter attaches a custom importer Go function to an import in Sass
 func BindImporter(opts SassOptions, entries []ImportEntry) {
 	ptr := unsafe.Pointer(&entries)
 	runtime.SetFinalizer(&entries, nil)
