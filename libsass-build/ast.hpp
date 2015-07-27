@@ -128,7 +128,7 @@ namespace Sass {
     virtual bool is_invisible() const { return false; }
     static string type_name() { return ""; }
     virtual bool is_false() { return false; }
-    virtual bool operator==( Expression& rhs) const { return false; }
+    virtual bool operator== (const Expression& rhs) const { return false; }
     virtual void set_delayed(bool delayed) { is_delayed(delayed); }
     virtual size_t hash() { return 0; }
   };
@@ -142,8 +142,7 @@ namespace Sass {
           bool d = false, bool e = false, bool i = false, Concrete_Type ct = NONE)
     : Expression(pstate, d, e, i, ct)
     { }
-    virtual bool operator== (Expression& rhs) const = 0;
-    virtual bool operator== (Expression* rhs) const = 0;
+    virtual bool operator== (const Expression& rhs) const = 0;
     virtual string to_string(bool compressed = false, int precision = 5) const = 0;
   };
 }
@@ -218,6 +217,12 @@ namespace Sass {
     vector<T>& elements() { return elements_; }
     const vector<T>& elements() const { return elements_; }
     vector<T>& elements(vector<T>& e) { elements_ = e; return elements_; }
+
+    typename vector<T>::iterator end() { return elements_.end(); }
+    typename vector<T>::iterator begin() { return elements_.begin(); }
+    typename vector<T>::const_iterator end() const { return elements_.end(); }
+    typename vector<T>::const_iterator begin() const { return elements_.begin(); }
+
   };
   template <typename T>
   inline Vectorized<T>::~Vectorized() { }
@@ -301,7 +306,21 @@ namespace Sass {
       SUPPORTS,
       ATROOT,
       BUBBLE,
-      KEYFRAMERULE
+      KEYFRAMERULE,
+      DECLARATION,
+      ASSIGNMENT,
+      IMPORT_STUB,
+      IMPORT,
+      COMMENT,
+      WARNING,
+      RETURN,
+      EXTEND,
+      ERROR,
+      DEBUG,
+      WHILE,
+      EACH,
+      FOR,
+      IF
     };
   private:
     ADD_PROPERTY(Block*, block)
@@ -491,7 +510,7 @@ namespace Sass {
     Declaration(ParserState pstate,
                 String* prop, Expression* val, bool i = false)
     : Statement(pstate), property_(prop), value_(val), is_important_(i), is_indented_(false)
-    { }
+    { statement_type(DECLARATION); }
     ATTACH_OPERATIONS()
   };
 
@@ -509,7 +528,7 @@ namespace Sass {
                bool is_default = false,
                bool is_global = false)
     : Statement(pstate), variable_(var), value_(val), is_default_(is_default), is_global_(is_global)
-    { }
+    { statement_type(ASSIGNMENT); }
     ATTACH_OPERATIONS()
   };
 
@@ -527,7 +546,7 @@ namespace Sass {
       files_(vector<string>()),
       urls_(vector<Expression*>()),
       media_queries_(0)
-    { }
+    { statement_type(IMPORT); }
     vector<string>&      files()    { return files_; }
     vector<Expression*>& urls()     { return urls_; }
     ATTACH_OPERATIONS()
@@ -538,7 +557,7 @@ namespace Sass {
   public:
     Import_Stub(ParserState pstate, string f)
     : Statement(pstate), file_name_(f)
-    { }
+    { statement_type(IMPORT_STUB); }
     ATTACH_OPERATIONS()
   };
 
@@ -550,7 +569,7 @@ namespace Sass {
   public:
     Warning(ParserState pstate, Expression* msg)
     : Statement(pstate), message_(msg)
-    { }
+    { statement_type(WARNING); }
     ATTACH_OPERATIONS()
   };
 
@@ -562,7 +581,7 @@ namespace Sass {
   public:
     Error(ParserState pstate, Expression* msg)
     : Statement(pstate), message_(msg)
-    { }
+    { statement_type(ERROR); }
     ATTACH_OPERATIONS()
   };
 
@@ -574,7 +593,7 @@ namespace Sass {
   public:
     Debug(ParserState pstate, Expression* val)
     : Statement(pstate), value_(val)
-    { }
+    { statement_type(DEBUG); }
     ATTACH_OPERATIONS()
   };
 
@@ -587,7 +606,7 @@ namespace Sass {
   public:
     Comment(ParserState pstate, String* txt, bool is_important)
     : Statement(pstate), text_(txt), is_important_(is_important)
-    { }
+    { statement_type(COMMENT); }
     ATTACH_OPERATIONS()
   };
 
@@ -600,7 +619,7 @@ namespace Sass {
   public:
     If(ParserState pstate, Expression* pred, Block* con, Block* alt = 0)
     : Has_Block(pstate, con), predicate_(pred), alternative_(alt)
-    { }
+    { statement_type(IF); }
     ATTACH_OPERATIONS()
   };
 
@@ -617,7 +636,7 @@ namespace Sass {
         string var, Expression* lo, Expression* hi, Block* b, bool inc)
     : Has_Block(pstate, b),
       variable_(var), lower_bound_(lo), upper_bound_(hi), is_inclusive_(inc)
-    { }
+    { statement_type(FOR); }
     ATTACH_OPERATIONS()
   };
 
@@ -630,7 +649,7 @@ namespace Sass {
   public:
     Each(ParserState pstate, vector<string> vars, Expression* lst, Block* b)
     : Has_Block(pstate, b), variables_(vars), list_(lst)
-    { }
+    { statement_type(EACH); }
     ATTACH_OPERATIONS()
   };
 
@@ -642,7 +661,7 @@ namespace Sass {
   public:
     While(ParserState pstate, Expression* pred, Block* b)
     : Has_Block(pstate, b), predicate_(pred)
-    { }
+    { statement_type(WHILE); }
     ATTACH_OPERATIONS()
   };
 
@@ -654,7 +673,7 @@ namespace Sass {
   public:
     Return(ParserState pstate, Expression* val)
     : Statement(pstate), value_(val)
-    { }
+    { statement_type(RETURN); }
     ATTACH_OPERATIONS()
   };
 
@@ -666,7 +685,7 @@ namespace Sass {
   public:
     Extension(ParserState pstate, Selector* s)
     : Statement(pstate), selector_(s)
-    { }
+    { statement_type(EXTEND); }
     ATTACH_OPERATIONS()
   };
 
@@ -812,8 +831,7 @@ namespace Sass {
       is_delayed(delayed);
     }
 
-    virtual bool operator==(Expression& rhs) const;
-    virtual bool operator==(Expression* rhs) const;
+    virtual bool operator== (const Expression& rhs) const;
     virtual string to_string(bool compressed = false, int precision = 5) const;
 
     ATTACH_OPERATIONS()
@@ -846,8 +864,7 @@ namespace Sass {
       return hash_;
     }
 
-    virtual bool operator== (Expression& rhs) const;
-    virtual bool operator== (Expression* rhs) const;
+    virtual bool operator== (const Expression& rhs) const;
     virtual string to_string(bool compressed = false, int precision = 5) const;
 
     ATTACH_OPERATIONS()
@@ -894,15 +911,15 @@ namespace Sass {
       left()->set_delayed(delayed);
       is_delayed(delayed);
     }
-    virtual bool operator==(Expression& rhs) const
+    virtual bool operator==(const Expression& rhs) const
     {
       try
       {
-        Binary_Expression& m = dynamic_cast<Binary_Expression&>(rhs);
+        const Binary_Expression* m = dynamic_cast<const Binary_Expression*>(&rhs);
         if (m == 0) return false;
-        return type() == m.type() &&
-               left() == m.left() &&
-               right() == m.right();
+        return type() == m->type() &&
+               left() == m->left() &&
+               right() == m->right();
       }
       catch (std::bad_cast&)
       {
@@ -944,14 +961,14 @@ namespace Sass {
         default: return "invalid"; break;
       }
     }
-    virtual bool operator==(Expression& rhs) const
+    virtual bool operator==(const Expression& rhs) const
     {
       try
       {
-        Unary_Expression& m = dynamic_cast<Unary_Expression&>(rhs);
+        const Unary_Expression* m = dynamic_cast<const Unary_Expression*>(&rhs);
         if (m == 0) return false;
-        return type() == m.type() &&
-               operand() == m.operand();
+        return type() == m->type() &&
+               operand() == m->operand();
       }
       catch (std::bad_cast&)
       {
@@ -988,13 +1005,13 @@ namespace Sass {
       }
     }
 
-    virtual bool operator==(Expression& rhs) const
+    virtual bool operator==(const Expression& rhs) const
     {
       try
       {
-        Argument& m = dynamic_cast<Argument&>(rhs);
-        if (!(m && name() == m.name())) return false;
-        return *value() == *m.value();
+        const Argument* m = dynamic_cast<const Argument*>(&rhs);
+        if (!(m && name() == m->name())) return false;
+        return *value() == *m->value();
       }
       catch (std::bad_cast&)
       {
@@ -1053,15 +1070,15 @@ namespace Sass {
     : Expression(pstate), name_(n), arguments_(args), cookie_(0), hash_(0)
     { concrete_type(STRING); }
 
-    virtual bool operator==(Expression& rhs) const
+    virtual bool operator==(const Expression& rhs) const
     {
       try
       {
-        Function_Call& m = dynamic_cast<Function_Call&>(rhs);
-        if (!(m && name() == m.name())) return false;
-        if (!(m && arguments()->length() == m.arguments()->length())) return false;
+        const Function_Call* m = dynamic_cast<const Function_Call*>(&rhs);
+        if (!(m && name() == m->name())) return false;
+        if (!(m && arguments()->length() == m->arguments()->length())) return false;
         for (size_t i =0, L = arguments()->length(); i < L; ++i)
-          if (!((*arguments())[i] == (*m.arguments())[i])) return false;
+          if (!((*arguments())[i] == (*m->arguments())[i])) return false;
         return true;
       }
       catch (std::bad_cast&)
@@ -1107,12 +1124,12 @@ namespace Sass {
     : Expression(pstate), name_(n)
     { }
 
-    virtual bool operator==(Expression& rhs) const
+    virtual bool operator==(const Expression& rhs) const
     {
       try
       {
-        Variable& e = dynamic_cast<Variable&>(rhs);
-        return e && name() == e.name();
+        const Variable* e = dynamic_cast<const Variable*>(&rhs);
+        return e && name() == e->name();
       }
       catch (std::bad_cast&)
       {
@@ -1146,12 +1163,12 @@ namespace Sass {
       hash_(0)
     { }
 
-    virtual bool operator==(Expression& rhs) const
+    virtual bool operator==(const Expression& rhs) const
     {
       try
       {
-        Textual& e = dynamic_cast<Textual&>(rhs);
-        return e && value() == e.value() && type() == e.type();
+        const Textual* e = dynamic_cast<const Textual*>(&rhs);
+        return e && value() == e->value() && type() == e->type();
       }
       catch (std::bad_cast&)
       {
@@ -1193,8 +1210,8 @@ namespace Sass {
     string unit() const;
 
     bool is_unitless();
-    void convert(const string& unit = "");
-    void normalize(const string& unit = "");
+    void convert(const string& unit = "", bool strict = false);
+    void normalize(const string& unit = "", bool strict = false);
     // useful for making one number compatible with another
     string find_convertible_unit() const;
 
@@ -1206,10 +1223,8 @@ namespace Sass {
       return hash_;
     }
 
-    virtual bool operator< (Number& rhs) const;
-    virtual bool operator< (Number* rhs) const;
-    virtual bool operator== (Expression& rhs) const;
-    virtual bool operator== (Expression* rhs) const;
+    virtual bool operator< (const Number& rhs) const;
+    virtual bool operator== (const Expression& rhs) const;
     virtual string to_string(bool compressed = false, int precision = 5) const;
 
     ATTACH_OPERATIONS()
@@ -1245,8 +1260,7 @@ namespace Sass {
       return hash_;
     }
 
-    virtual bool operator== (Expression& rhs) const;
-    virtual bool operator== (Expression* rhs) const;
+    virtual bool operator== (const Expression& rhs) const;
     virtual string to_string(bool compressed = false, int precision = 5) const;
 
     ATTACH_OPERATIONS()
@@ -1261,8 +1275,7 @@ namespace Sass {
     Custom_Error(ParserState pstate, string msg)
     : Value(pstate), message_(msg)
     { concrete_type(C_ERROR); }
-    virtual bool operator== (Expression& rhs) const;
-    virtual bool operator== (Expression* rhs) const;
+    virtual bool operator== (const Expression& rhs) const;
     virtual string to_string(bool compressed = false, int precision = 5) const;
     ATTACH_OPERATIONS()
   };
@@ -1276,8 +1289,7 @@ namespace Sass {
     Custom_Warning(ParserState pstate, string msg)
     : Value(pstate), message_(msg)
     { concrete_type(C_WARNING); }
-    virtual bool operator== (Expression& rhs) const;
-    virtual bool operator== (Expression* rhs) const;
+    virtual bool operator== (const Expression& rhs) const;
     virtual string to_string(bool compressed = false, int precision = 5) const;
     ATTACH_OPERATIONS()
   };
@@ -1306,8 +1318,7 @@ namespace Sass {
       return hash_;
     }
 
-    virtual bool operator== (Expression& rhs) const;
-    virtual bool operator== (Expression* rhs) const;
+    virtual bool operator== (const Expression& rhs) const;
     virtual string to_string(bool compressed = false, int precision = 5) const;
 
     ATTACH_OPERATIONS()
@@ -1325,8 +1336,7 @@ namespace Sass {
     { concrete_type(STRING); }
     static string type_name() { return "string"; }
     virtual ~String() = 0;
-    virtual bool operator==(Expression& rhs) const = 0;
-    virtual bool operator==(Expression* rhs) const = 0;
+    virtual bool operator==(const Expression& rhs) const = 0;
     virtual string to_string(bool compressed = false, int precision = 5) const = 0;
     ATTACH_OPERATIONS()
   };
@@ -1355,8 +1365,7 @@ namespace Sass {
       return hash_;
     }
 
-    virtual bool operator==(Expression& rhs) const;
-    virtual bool operator==(Expression* rhs) const;
+    virtual bool operator==(const Expression& rhs) const;
     virtual string to_string(bool compressed = false, int precision = 5) const;
 
     ATTACH_OPERATIONS()
@@ -1395,8 +1404,7 @@ namespace Sass {
       return hash_;
     }
 
-    virtual bool operator==(Expression& rhs) const;
-    virtual bool operator==(Expression* rhs) const;
+    virtual bool operator==(const Expression& rhs) const;
     virtual string to_string(bool compressed = false, int precision = 5) const;
 
     // static char auto_quote() { return '*'; }
@@ -1416,8 +1424,7 @@ namespace Sass {
     {
       value_ = unquote(value_, &quote_mark_);
     }
-    virtual bool operator==(Expression& rhs) const;
-    virtual bool operator==(Expression* rhs) const;
+    virtual bool operator==(const Expression& rhs) const;
     virtual string to_string(bool compressed = false, int precision = 5) const;
     ATTACH_OPERATIONS()
   };
@@ -1582,8 +1589,7 @@ namespace Sass {
       return -1;
     }
 
-    virtual bool operator== (Expression& rhs) const;
-    virtual bool operator== (Expression* rhs) const;
+    virtual bool operator== (const Expression& rhs) const;
     virtual string to_string(bool compressed = false, int precision = 5) const;
 
     ATTACH_OPERATIONS()
@@ -1692,7 +1698,6 @@ namespace Sass {
       media_block_(0)
     { concrete_type(SELECTOR); }
     virtual ~Selector() = 0;
-    // virtual Selector_Placeholder* find_placeholder();
     virtual unsigned long specificity() {
       return Constants::Specificity_Universal;
     }
@@ -1719,13 +1724,15 @@ namespace Sass {
   class Simple_Selector : public Selector {
     ADD_PROPERTY(string, ns);
     ADD_PROPERTY(string, name)
+    ADD_PROPERTY(bool, has_ns)
   public:
     Simple_Selector(ParserState pstate, string n = "")
-    : Selector(pstate), ns_(""), name_(n)
+    : Selector(pstate), ns_(""), name_(n), has_ns_(false)
     {
       size_t pos = n.find('|');
       // found some namespace
       if (pos != string::npos) {
+        has_ns_ = true;
         ns_ = n.substr(0, pos);
         name_ = n.substr(pos + 1);
       }
@@ -1733,9 +1740,35 @@ namespace Sass {
     virtual string ns_name() const
     {
       string name("");
-      if (!ns_.empty())
+      if (has_ns_)
         name += ns_ + "|";
       return name + name_;
+    }
+    // namespace query functions
+    bool is_universal_ns() const
+    {
+      return has_ns_ && ns_ == "*";
+    }
+    bool has_universal_ns() const
+    {
+      return !has_ns_ || ns_ == "*";
+    }
+    bool is_empty_ns() const
+    {
+      return !has_ns_ || ns_ == "";
+    }
+    bool has_empty_ns() const
+    {
+      return has_ns_ && ns_ == "";
+    }
+    bool has_qualified_ns() const
+    {
+      return has_ns_ && ns_ != "" && ns_ != "*";
+    }
+    // name query functions
+    bool is_universal() const
+    {
+      return name_ == "*";
     }
 
     virtual ~Simple_Selector() = 0;
@@ -1802,6 +1835,7 @@ namespace Sass {
       if (name() == "*") return Constants::Specificity_Universal;
       else               return Constants::Specificity_Type;
     }
+    virtual Simple_Selector* unify_with(Simple_Selector*, Context&);
     virtual Compound_Selector* unify_with(Compound_Selector*, Context&);
     ATTACH_OPERATIONS()
   };
@@ -1910,6 +1944,8 @@ namespace Sass {
     {
       return selector_ ? selector_->specificity() : 0;
     }
+    bool operator==(const Simple_Selector& rhs) const;
+    bool operator==(const Wrapped_Selector& rhs) const;
     ATTACH_OPERATIONS()
   };
 
@@ -1944,6 +1980,13 @@ namespace Sass {
       }
       return false;
     };
+
+    bool is_universal() const
+    {
+      return length() == 1 && (*this)[0]->is_universal();
+    }
+
+    Complex_Selector* to_complex(Memory_Manager<AST_Node>& mem);
     Compound_Selector* unify_with(Compound_Selector* rhs, Context& ctx);
     // virtual Selector_Placeholder* find_placeholder();
     virtual bool has_parent_ref();
@@ -2020,17 +2063,33 @@ namespace Sass {
       if ((h && h->has_placeholder()) || (t && t->has_placeholder())) has_placeholder(true);
     }
     virtual bool has_parent_ref();
+
+    // can still have a tail
+    bool is_empty_ancestor() const
+    {
+      return (!head() || head()->length() == 0) &&
+             combinator() == Combinator::ANCESTOR_OF;
+    }
+
     Complex_Selector* context(Context&);
-    Complex_Selector* innermost();
-    Complex_Selector* last() { return innermost(); };
-    Complex_Selector* first() {
-      Complex_Selector* s = tail();
-      while (s && s->head() && s->head()->length() == 1 && dynamic_cast<Parent_Selector*>((*s->head())[0])) {
-        s = s->tail();
-      }
-      return s;
-    };
-    size_t length();
+
+
+    // front returns the first real tail
+    // skips over parent and empty ones
+    const Complex_Selector* first() const;
+
+    // last returns the last real tail
+    const Complex_Selector* last() const;
+
+    // unconstant accessors
+    Complex_Selector* first();
+    Complex_Selector* last();
+
+    // some shortcuts that should be removed
+    const Complex_Selector* innermost() const { return last(); };
+    Complex_Selector* innermost() { return last(); };
+
+    size_t length() const;
     Complex_Selector* parentize(Context& ctx);
     Selector_List* parentize(Selector_List* parents, Context& ctx);
     Complex_Selector* parentize(Complex_Selector* parent, Context& ctx);
@@ -2132,7 +2191,6 @@ namespace Sass {
     virtual bool is_superselector_of(Compound_Selector* sub, string wrapping = "");
     virtual bool is_superselector_of(Complex_Selector* sub, string wrapping = "");
     virtual bool is_superselector_of(Selector_List* sub, string wrapping = "");
-
     Selector_List* unify_with(Selector_List*, Context&);
     void populate_extends(Selector_List*, Context&, ExtensionSubsetMap&);
     virtual unsigned long specificity()
@@ -2148,7 +2206,8 @@ namespace Sass {
     }
     Selector_List* clone(Context&) const;      // does not clone Compound_Selector*s
     Selector_List* cloneFully(Context&) const; // clones Compound_Selector*s
-    // vector<Complex_Selector*> members() { return elements_; }
+    virtual bool operator==(const Selector& rhs) const;
+    virtual bool operator==(const Selector_List& rhs) const;
     ATTACH_OPERATIONS()
   };
 
@@ -2178,6 +2237,11 @@ namespace Sass {
       return one == two;
     }
   }
+
+  // compare function for sorting and probably other other uses
+  struct cmp_complex_selector { inline bool operator() (const Complex_Selector* l, const Complex_Selector* r) { return (*l < *r); } };
+  struct cmp_compound_selector { inline bool operator() (const Compound_Selector* l, const Compound_Selector* r) { return (*l < *r); } };
+  struct cmp_simple_selector { inline bool operator() (const Simple_Selector* l, const Simple_Selector* r) { return (*l < *r); } };
 
 }
 
