@@ -37,7 +37,7 @@ install:
   - dir C:\mingw64\bin
   #retrieve go 1.5
   - ps: |
-      $file = "go1.5beta2.windows-amd64.zip"
+      $file = "$GOVER.windows-amd64.zip"
       $url  = "https://storage.googleapis.com/golang/"
       $url += $file
       Invoke-WebRequest -UserAgent wget -Uri $url -OutFile go1.5beta2.windows-amd64.zip
