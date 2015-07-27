@@ -5,7 +5,7 @@ os: Windows Server 2012 R2
 clone_folder: c:\gopath\src\github.com\wellington\go-libsass
 
 environment:
-  GOVER: go1.5beta2
+  GOVER: go1.5beta1
   GOPATH: c:\gopath
   CGO_ENABLED: 1
   GOROOT_BOOTSTRAP: C:\go
@@ -37,7 +37,7 @@ install:
   - dir C:\mingw64\bin
   #retrieve go 1.5
   - ps: |
-      $file = "$GOVER.windows-amd64.zip"
+      $file = $GOVER + ".windows-amd64.zip"
       $url  = "https://storage.googleapis.com/golang/"
       $url += $file
       Invoke-WebRequest -UserAgent wget -Uri $url -OutFile go1.5beta2.windows-amd64.zip
