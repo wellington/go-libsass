@@ -1,4 +1,4 @@
-// sass2scss must happen early on because of use of string
+#ifndef USE_LIBSASS
 #include "../libsass-build/ast.cpp"
 #include "../libsass-build/base64vlq.cpp"
 #include "../libsass-build/bind.cpp"
@@ -40,3 +40,4 @@
 #include "../libsass-build/utf8_string.cpp"
 #include "../libsass-build/util.cpp"
 #include "../libsass-build/values.cpp"
+#endif
