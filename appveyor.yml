@@ -43,7 +43,8 @@ install:
       Invoke-WebRequest -UserAgent wget -Uri $url -OutFile go1.5beta1.windows-amd64.zip
       &7z x -oC:\go15 go1.5beta1.windows-amd64.zip > $null
   - go version
-  - go get ./...
+  - go get
+  - go get github.com/go-libsass/libs
 
 build_script:
-  - go build -x -ldflags "-extldflags '-static'" github.com/wellington/go-libsass
+  - go build -x -ldflags "-extldflags '-static'"
