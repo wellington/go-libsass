@@ -45,6 +45,6 @@ install:
   - go get github.com/wellington/spritewell
   - go install -ldflags "-extldflags '-static'" github.com/wellington/go-libsass/simple
   - simple
-  - go test -ldflags "-extldflags '-static'"
+  - go test -gcflags "-linkmode internal"
 build_script:
   - go build -x -ldflags "-extldflags '-static'" github.com/wellington/go-libsass
