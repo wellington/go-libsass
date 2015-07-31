@@ -7,6 +7,11 @@ import (
 )
 
 func main() {
+	separate()
+	go separate()
+}
+
+func separate() {
 	godc := libs.SassMakeDataContext("div { p { color: red; } }")
 	gocompiler := libs.SassMakeDataCompiler(godc)
 	libs.SassCompilerParse(gocompiler)
