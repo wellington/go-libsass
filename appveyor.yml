@@ -44,6 +44,6 @@ install:
       &7z x -oC:\go15 go1.5beta1.windows-amd64.zip > $null
   - go version
   - go get ./...
-
+  - go test
 build_script:
   - go build -x -ldflags "-extldflags '-static'" github.com/wellington/go-libsass
