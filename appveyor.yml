@@ -17,7 +17,7 @@ install:
   # install gcc (needed for sqlite3)
   #- choco install -y mingw
   #- set PATH=C:\tools\mingw64\bin;C:\gopath\bin;%PATH%
-
+  - cd simple; dir
 
   - ps: |
       # Install MinGW.
