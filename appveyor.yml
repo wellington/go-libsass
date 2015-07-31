@@ -17,7 +17,6 @@ install:
   # install gcc (needed for sqlite3)
   #- choco install -y mingw
   #- set PATH=C:\tools\mingw64\bin;C:\gopath\bin;%PATH%
-  - cd simple; dir
 
   - ps: |
       # Install MinGW.
@@ -44,6 +43,7 @@ install:
       &7z x -oC:\go15 go1.5beta1.windows-amd64.zip > $null
   - go version
   - go get -v ./...
-  - cd simple; go run *.go
+  - go install github.com/wellington/go-libsass/simple
+  - simple
 build_script:
   - go build -x -ldflags "-extldflags '-static'" github.com/wellington/go-libsass
