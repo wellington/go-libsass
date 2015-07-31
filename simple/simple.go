@@ -2,13 +2,20 @@ package main
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/wellington/go-libsass/libs"
 )
 
 func main() {
 	separate()
-	go separate()
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		separate()
+		wg.Done()
+	}()
+	wg.Wait()
 }
 
 func separate() {
