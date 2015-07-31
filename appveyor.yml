@@ -43,7 +43,7 @@ install:
       &7z x -oC:\go15 go1.5beta1.windows-amd64.zip > $null
   - go version
   - go get github.com/wellington/spritewell
-  - go install -ldflags "-extldflags '-static'" github.com/wellington/go-libsass/simple
+  - go install github.com/wellington/go-libsass/simple
   - simple
 build_script:
   #- go build -x -ldflags "-extldflags '-static'" github.com/wellington/go-libsass
