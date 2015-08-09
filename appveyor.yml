@@ -55,6 +55,7 @@ install:
   - echo %GOPATH%
   - dir C:\mingw64\bin
   - go get golang.org/x/net/context
+  - go test
 
 build_script:
   - go build -x -ldflags "-extldflags '-static'"
