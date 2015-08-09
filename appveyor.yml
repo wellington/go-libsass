@@ -22,7 +22,7 @@ install:
       $url  = "https://storage.googleapis.com/golang/"
       $url += $file
       Invoke-WebRequest -UserAgent wget -Uri $url -OutFile $file
-      &7z x -oC:\go15 go1.5rc1.windows-amd64.zip > $null
+      &7z x -oC:\go15 $file > $null
   - go version
   - ps: |
       # Install MinGW.
