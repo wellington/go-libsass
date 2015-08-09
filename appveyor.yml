@@ -15,9 +15,7 @@ install:
   # - ps: Install-Product node $env:nodejs_version
   # install gcc (needed for sqlite3)
   #- choco install -y mingw
-  #- set PATH=C:\tools\mingw64\bin;C:\gopath\bin;%PATH%
-
-
+  - set PATH=C:\mingw64\bin;C:\go15\go\bin;C:\gopath\bin;%PATH%
   #retrieve go 1.5
   - ps: |
       $file = "go1.5rc1.windows-amd64.zip"
@@ -36,7 +34,6 @@ install:
       $url  = "https://github.com/wellington/binaries/blob/master/x86_64-4.9.2-release-win32-seh-rt_v4-rev3.7z?raw=true"
       Invoke-WebRequest -UserAgent wget -Uri $url -OutFile x86_64-4.9.2-release-win32-seh-rt_v3-rev0.7z
       &7z x -oC:\ x86_64-4.9.2-release-win32-seh-rt_v3-rev0.7z > $null
-  - set PATH=C:\mingw64\bin;C:\go15\go\bin;C:\gopath\bin;%PATH%
   - set CC=gcc
   - set CXX=g++
   - echo %PATH%
