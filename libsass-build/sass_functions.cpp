@@ -1,16 +1,9 @@
-#ifdef _WIN32
-#include <io.h>
-#else
-#include <unistd.h>
-#endif
-
 #include <cstring>
 #include "util.hpp"
 #include "context.hpp"
 #include "sass_functions.h"
 
 extern "C" {
-  using namespace std;
   using namespace Sass;
 
   // Struct to hold custom function callback
