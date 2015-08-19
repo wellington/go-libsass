@@ -10,6 +10,9 @@ environment:
   GOROOT_BOOTSTRAP: C:\go
   GOROOT: C:\go15\go
 
+cache:
+  - C:\mingw64 -> appveyor.yml
+
 install:
   # install nodejs and npm
   # - ps: Install-Product node $env:nodejs_version
