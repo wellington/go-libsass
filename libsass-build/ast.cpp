@@ -1873,4 +1873,3 @@ namespace Sass {
   }
 
 }
-

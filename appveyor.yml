@@ -12,7 +12,7 @@ environment:
 
 cache:
   - C:\mingw64 -> appveyor.yml
-  - C:\go15 -> appveyor.yml
+  #- C:\go15
 
 install:
   # install nodejs and npm
@@ -27,11 +27,13 @@ install:
       $url += $file
       $goAUTHOR="C:\go15\AUTHORS"
       If (Test-Path $goAUTHOR){
-        Write-Host "Using cached go"
+        Write-Host "Using cached Go"
       }Else{
+        Write-Host "Fetching Go"
         Invoke-WebRequest -UserAgent wget -Uri $url -OutFile $file
         &7z x -oC:\go15 $file > $null
       }
+  - dir C:\go15
   - go version
   - ps: |
       # Install MinGW.
@@ -45,6 +47,7 @@ install:
       If (Test-Path $strFileName){
         Write-Host "Using cached mingw64"
       }Else{
+        Write-Host "Fetching mingw64"
         Invoke-WebRequest -UserAgent wget -Uri $url -OutFile ming32-64.7z
         &7z x -oC:\ ming32-64.7z > $null
       }
