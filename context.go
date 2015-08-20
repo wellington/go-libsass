@@ -189,5 +189,5 @@ func (ctx *Context) Compile(in io.Reader, out io.Writer) error {
 // with generated images like sprites.
 func (p *Context) RelativeImage() string {
 	rel, _ := filepath.Rel(p.BuildDir, p.ImageDir)
-	return filepath.Clean(rel)
+	return filepath.ToSlash(filepath.Clean(rel))
 }
