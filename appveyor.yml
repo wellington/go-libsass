@@ -12,6 +12,7 @@ environment:
 
 cache:
   - C:\mingw64 -> appveyor.yml
+  - C:\go15 -> appveyor.yml
 
 install:
   # install nodejs and npm
@@ -24,8 +25,13 @@ install:
       $file = "go1.5.windows-amd64.zip"
       $url  = "https://storage.googleapis.com/golang/"
       $url += $file
-      Invoke-WebRequest -UserAgent wget -Uri $url -OutFile $file
-      &7z x -oC:\go15 $file > $null
+      $goAUTHOR="C:\go15\AUTHORS"
+      If (Test-Path $goAUTHOR){
+        Write-Host "Using cached go"
+      }Else{
+        Invoke-WebRequest -UserAgent wget -Uri $url -OutFile $file
+        &7z x -oC:\go15 $file > $null
+      }
   - go version
   - ps: |
       # Install MinGW.
