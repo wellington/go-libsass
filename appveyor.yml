@@ -23,7 +23,7 @@ install:
   #retrieve go 1.5
   - ps: |
       $file = "go1.5.windows-amd64.zip"
-      $url  = "https://storage.googleapis.com/golang/"
+      $url  = "https://bintray.com/artifact/download/drewwells/generic/"
       $url += $file
       $goAUTHOR="C:\go15\go\AUTHORS"
       If (Test-Path $goAUTHOR){
