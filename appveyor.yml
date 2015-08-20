@@ -12,7 +12,7 @@ environment:
 
 cache:
   - C:\mingw64 -> appveyor.yml
-  #- C:\go15
+  - C:\go15
 
 install:
   # install nodejs and npm
@@ -25,7 +25,7 @@ install:
       $file = "go1.5.windows-amd64.zip"
       $url  = "https://storage.googleapis.com/golang/"
       $url += $file
-      $goAUTHOR="C:\go15\AUTHORS"
+      $goAUTHOR="C:\go15\go\AUTHORS"
       If (Test-Path $goAUTHOR){
         Write-Host "Using cached Go"
       }Else{
