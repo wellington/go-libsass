@@ -34,10 +34,9 @@ type Context struct {
 	Status                      int //libsass status code
 
 	// many error parameters some are unnecessary and should be removed
-	libsassError string
-	errorString  string
-	errors       lErrors
-	Errors       SassError
+	errorString string
+	errors      lErrors
+	Errors      SassError
 
 	in  io.Reader
 	out io.Writer
@@ -120,7 +119,6 @@ func (ctx *Context) FileCompile(path string, out io.Writer) error {
 	ctx.Status = libs.SassContextGetErrorStatus(gocc)
 	errJSON := libs.SassContextGetErrorJSON(gocc)
 	// Yet another property for storing errors
-	ctx.libsassError = errJSON
 	err := ctx.ProcessSassError([]byte(errJSON))
 	if err != nil {
 		return err
@@ -162,7 +160,6 @@ func (ctx *Context) Compile(in io.Reader, out io.Writer) error {
 
 	ctx.Status = libs.SassContextGetErrorStatus(goctx)
 	errJSON := libs.SassContextGetErrorJSON(goctx)
-	ctx.libsassError = errJSON
 	err = ctx.ProcessSassError([]byte(errJSON))
 
 	if err != nil {
