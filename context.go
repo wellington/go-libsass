@@ -35,7 +35,7 @@ type Context struct {
 
 	// many error parameters some are unnecessary and should be removed
 	errorString string
-	Errors      SassError
+	err         SassError
 
 	in  io.Reader
 	out io.Writer
@@ -122,9 +122,9 @@ func (ctx *Context) FileCompile(path string, out io.Writer) error {
 	if err != nil {
 		return err
 	}
-	if ctx.error() != "" {
+	if ctx.Error() != "" {
 		// TODO: this is weird, make something more idiomatic*/
-		return errors.New(ctx.error())
+		return errors.New(ctx.Error())
 	}
 
 	return nil
@@ -165,16 +165,16 @@ func (ctx *Context) Compile(in io.Reader, out io.Writer) error {
 		return err
 	}
 
-	if ctx.error() != "" {
+	if ctx.Error() != "" {
 		lines := bytes.Split(bs, []byte("\n"))
 		var out string
 		for i := -7; i < 7; i++ {
-			if i+ctx.Errors.Line >= 0 && i+ctx.Errors.Line < len(lines) {
-				out += fmt.Sprintf("%s\n", string(lines[i+ctx.Errors.Line]))
+			if i+ctx.err.Line >= 0 && i+ctx.err.Line < len(lines) {
+				out += fmt.Sprintf("%s\n", string(lines[i+ctx.err.Line]))
 			}
 		}
 		// TODO: this is weird, make something more idiomatic
-		return errors.New(ctx.error() + "\n" + out)
+		return errors.New(ctx.Error() + "\n" + out)
 	}
 
 	return nil

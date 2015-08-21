@@ -120,8 +120,8 @@ func TestLibsassError(t *testing.T) {
 		t.Error("No error thrown for incorrect arity")
 	}
 
-	if e := "function red only takes 1 arguments; given 2"; e != ctx.Errors.Message {
-		t.Errorf("wanted:\n%s\ngot:\n%s\n", e, ctx.Errors.Message)
+	if e := "function red only takes 1 arguments; given 2"; e != ctx.err.Message {
+		t.Errorf("wanted:\n%s\ngot:\n%s\n", e, ctx.err.Message)
 	}
 	e := `Error > stdin:2
 function red only takes 1 arguments; given 2

@@ -24,16 +24,16 @@ func TestError_basic(t *testing.T) {
 
 	e := ErrorMap{2, "no mixin named invalid-function\n\nBacktrace:\n\tstdin:2"}
 
-	if e.line != ctx.Errors.Line {
-		t.Errorf("wanted: %d\ngot: %d", e.line, ctx.Errors.Line)
+	if e.line != ctx.err.Line {
+		t.Errorf("wanted: %d\ngot: %d", e.line, ctx.err.Line)
 	}
 
-	if e.message != ctx.Errors.Message {
-		t.Errorf("wanted:\n%s\ngot:\n%s", e.message, ctx.Errors.Message)
+	if e.message != ctx.err.Message {
+		t.Errorf("wanted:\n%s\ngot:\n%s", e.message, ctx.err.Message)
 	}
 
-	if ctx.errorString != ctx.error() {
-		t.Errorf("wanted: %s got: %s", ctx.errorString, ctx.error())
+	if ctx.errorString != ctx.Error() {
+		t.Errorf("wanted: %s got: %s", ctx.errorString, ctx.Error())
 	}
 }
 
@@ -71,8 +71,8 @@ func TestError_unbound(t *testing.T) {
 	}
 
 	e := ErrorMap{2, "unbound variable $sprite"}
-	if e.line != ctx.Errors.Line {
-		t.Errorf("wanted:\n%d\ngot:\n%d", e.line, ctx.Errors.Line)
+	if e.line != ctx.err.Line {
+		t.Errorf("wanted:\n%d\ngot:\n%d", e.line, ctx.err.Line)
 	}
 
 }
@@ -98,12 +98,12 @@ Backtrace:
 	stdin:3, in function ` + "`map-get`" + `
 	stdin:3, in function ` + "`uniqueFnName`" + `
 	stdin:6`}
-	if e.line != ctx.Errors.Line {
-		t.Errorf("wanted:\n%d\ngot:\n%d", e.line, ctx.Errors.Line)
+	if e.line != ctx.err.Line {
+		t.Errorf("wanted:\n%d\ngot:\n%d", e.line, ctx.err.Line)
 	}
 
-	if e.message != ctx.Errors.Message {
-		t.Errorf("wanted:\n%s\ngot:\n%s", e.message, ctx.Errors.Message)
+	if e.message != ctx.err.Message {
+		t.Errorf("wanted:\n%s\ngot:\n%s", e.message, ctx.err.Message)
 	}
 }
 
@@ -119,12 +119,12 @@ func TestError_import(t *testing.T) {
 		t.Error("No error returned")
 	}
 	e := ErrorMap{2, "file to import not found or unreadable: fail\nCurrent dir: "}
-	if e.line != ctx.Errors.Line {
-		t.Errorf("wanted:\n%d\ngot:\n%d", e.line, ctx.Errors.Line)
+	if e.line != ctx.err.Line {
+		t.Errorf("wanted:\n%d\ngot:\n%d", e.line, ctx.err.Line)
 	}
 
-	if e.message != ctx.Errors.Message {
-		t.Errorf("wanted:\n%s\ngot:\n%s", e.message, ctx.Errors.Message)
+	if e.message != ctx.err.Message {
+		t.Errorf("wanted:\n%s\ngot:\n%s", e.message, ctx.err.Message)
 	}
 
 }
@@ -149,7 +149,7 @@ Backtrace:
 	stdin:3100, in function inline-image
 	stdin:3100, in mixin printCSSImg
 	stdin:3117`
-	if e != ctx.error() {
+	if e != ctx.Error() {
 		t.Errorf("got:\n%s\nwanted:\n%s", err.Error(), e)
 	}
 }
