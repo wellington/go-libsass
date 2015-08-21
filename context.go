@@ -35,7 +35,6 @@ type Context struct {
 
 	// many error parameters some are unnecessary and should be removed
 	errorString string
-	errors      lErrors
 	Errors      SassError
 
 	in  io.Reader

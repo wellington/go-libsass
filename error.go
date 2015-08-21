@@ -5,16 +5,6 @@ import (
 	"fmt"
 )
 
-type lError struct {
-	Pos     int
-	Message string
-}
-
-type lErrors struct {
-	Errors []lError
-	Pos    int
-}
-
 // SassError represents an error object returned from Sass.  SassError
 // stores useful information for bubbling up libsass errors.
 type SassError struct {
