@@ -42,11 +42,18 @@ type Context struct {
 	// Place to keep cookies, so Go doesn't garbage collect them before C
 	// is done with them
 	Cookies []Cookie
-	// Imports has the list of Import files currently present
-	// in the calling context
+
+	// Imports is a map of overridden imports. When Sass attempts to
+	// import a path matching on in this map, it will include the import
+	// found in the map before looking for a file on the system.
 	Imports Imports
+	// Headers are a map of strings to start any Sass project with. Any
+	// header listed here will be present before any other Sass code is
+	// compiled.
 	Headers Headers
-	// Has list of compiler included files
+
+	// ResolvedImports is the list of files libsass used to compile this
+	// Sass sheet.
 	ResolvedImports []string
 
 	// Attach additional data to a context for use by custom
