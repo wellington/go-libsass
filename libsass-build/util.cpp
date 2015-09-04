@@ -363,6 +363,8 @@ namespace Sass {
           // ToDo: Maybe we could do this without creating a substring
           uint32_t cp = strtol(s.substr (i + 1, len - 1).c_str(), nullptr, 16);
 
+          if (s[i + len] == ' ') ++ len;
+
           // assert invalid code points
           if (cp == 0) cp = 0xFFFD;
           // replace bell character
@@ -428,7 +430,7 @@ namespace Sass {
 
       int cp = utf8::next(it, end);
 
-      if (cp == 10) {
+      if (cp == '\n') {
         quoted.push_back('\\');
         quoted.push_back('a');
         // we hope we can remove this flag once we figure out
@@ -545,10 +547,13 @@ namespace Sass {
             hasPrintableChildBlocks = true;
           }
         } else if (Comment* c = dynamic_cast<Comment*>(stm)) {
-          if (style == COMPRESSED) {
-            hasDeclarations = c->is_important();
-          } else {
+          // keep for uncompressed
+          if (style != COMPRESSED) {
             hasDeclarations = true;
+          }
+          // output style compressed
+          if (c->is_important()) {
+            hasDeclarations = c->is_important();
           }
         } else if (Declaration* d = dynamic_cast<Declaration*>(stm)) {
           return isPrintable(d, style);
@@ -646,7 +651,15 @@ namespace Sass {
           return true;
         }
         else if (typeid(*stm) == typeid(Comment)) {
-
+          Comment* c = (Comment*) stm;
+          // keep for uncompressed
+          if (style != COMPRESSED) {
+            return true;
+          }
+          // output style compressed
+          if (c->is_important()) {
+            return true;
+          }
         }
         else if (typeid(*stm) == typeid(Ruleset)) {
           Ruleset* r = (Ruleset*) stm;
