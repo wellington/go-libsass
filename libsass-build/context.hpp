@@ -16,18 +16,12 @@
 #include "subset_map.hpp"
 #include "output.hpp"
 #include "plugins.hpp"
+#include "file.hpp"
 #include "sass_functions.h"
 
 struct Sass_Function;
 
 namespace Sass {
-  struct Sass_Queued {
-    std::string abs_path;
-    std::string load_path;
-    const char* source;
-  public:
-    Sass_Queued(const std::string& load_path, const std::string& abs_path, const char* source);
-  };
 
   class Context {
   public:
@@ -116,9 +110,10 @@ namespace Sass {
     Block* parse_string();
     void add_source(std::string, std::string, char*);
 
-    std::string add_file(const std::string& file);
-    std::string add_file(const std::string& base, const std::string& file);
+    std::string add_file(const std::string& imp_path);
+    std::string add_file(const std::string& imp_path, const std::string& abs_path, ParserState pstate);
 
+    void process_queue_entry(Sass_Queued& entry, size_t idx);
 
     // allow to optionally overwrite the input path
     // default argument for input_path is std::string("stdin")
@@ -128,14 +123,15 @@ namespace Sass {
     char* compile_block(Block* root);
     char* generate_source_map();
 
-    std::vector<std::string> get_included_files(size_t skip = 0);
+    std::vector<std::string> get_included_files(bool skip = false, size_t headers = 0);
 
   private:
     void collect_plugin_paths(const char* paths_str);
     void collect_plugin_paths(const char** paths_array);
     void collect_include_paths(const char* paths_str);
     void collect_include_paths(const char** paths_array);
-    std::string format_source_mapping_url(const std::string& file);
+    std::string format_embedded_source_map();
+    std::string format_source_mapping_url(const std::string& out_path);
 
     std::string cwd;
     Plugins plugins;

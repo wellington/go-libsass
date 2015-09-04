@@ -121,7 +121,7 @@ namespace Sass {
     // sourcemap offset and we modify the position pointer!
     // lex will only skip over space, tabs and line comment
     template <Prelexer::prelexer mx>
-    const char* lex(bool lazy = true)
+    const char* lex(bool lazy = true, bool force = false)
     {
 
       // position considered before lexed token
@@ -136,10 +136,13 @@ namespace Sass {
       // now call matcher to get position after token
       const char* it_after_token = mx(it_before_token);
 
-      // assertion that we got a valid match
-      if (it_after_token == 0) return 0;
-      // assertion that we actually lexed something
-      if (it_after_token == it_before_token) return 0;
+      // maybe we want to update the parser state anyway?
+      if (force == false) {
+        // assertion that we got a valid match
+        if (it_after_token == 0) return 0;
+        // assertion that we actually lexed something
+        if (it_after_token == it_before_token) return 0;
+      }
 
       // create new lexed token object (holds the parse results)
       lexed = Token(position, it_before_token, it_after_token);
@@ -166,13 +169,24 @@ namespace Sass {
     {
       // copy old token
       Token prev = lexed;
+      // store previous pointer
+      const char* oldpos = position;
+      Position bt = before_token;
+      Position at = after_token;
+      ParserState op = pstate;
       // throw away comments
       // update srcmap position
       lex < Prelexer::css_comments >();
       // now lex a new token
       const char* pos = lex< mx >();
-      // maybe restore prev token
-      if (pos == 0) lexed = prev;
+      // maybe restore prev state
+      if (pos == 0) {
+        pstate = op;
+        lexed = prev;
+        position = oldpos;
+        after_token = at;
+        before_token = bt;
+      }
       // return match
       return pos;
     }
@@ -209,7 +223,7 @@ namespace Sass {
     Argument* parse_argument(bool has_url = false);
     Assignment* parse_assignment();
     // Propset* parse_propset();
-    Ruleset* parse_ruleset(Lookahead lookahead);
+    Ruleset* parse_ruleset(Lookahead lookahead, bool is_root = false);
     Selector_Schema* parse_selector_schema(const char* end_of_selector);
     Selector_List* parse_selector_list(bool at_root = false);
     Complex_Selector* parse_complex_selector(bool in_root = true);
@@ -220,8 +234,8 @@ namespace Sass {
     Attribute_Selector* parse_attribute_selector();
     Block* parse_block(bool is_root = false);
     Block* parse_css_block(bool is_root = false);
-    bool parse_block_nodes();
-    bool parse_block_node();
+    bool parse_block_nodes(bool is_root = false);
+    bool parse_block_node(bool is_root = false);
 
     bool parse_number_prefix();
     Declaration* parse_declaration();

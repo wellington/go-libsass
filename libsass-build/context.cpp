@@ -32,7 +32,6 @@
 #include "sass2scss.h"
 #include "prelexer.hpp"
 #include "emitter.hpp"
-#include "debugger.hpp"
 
 namespace Sass {
   using namespace Constants;
@@ -241,6 +240,8 @@ namespace Sass {
     if (char* contents = read_file(resolved)) {
       add_source(path, resolved, contents);
       style_sheets[path] = 0;
+      size_t i = queue.size() - 1;
+      process_queue_entry(queue[i], i);
       return path;
     }
     return std::string("");
@@ -248,17 +249,31 @@ namespace Sass {
 
   // Add a new import file to the context
   // This has some previous directory context
-  std::string Context::add_file(const std::string& base, const std::string& file)
+  std::string Context::add_file(const std::string& base, const std::string& file, ParserState pstate)
   {
     using namespace File;
     std::string path(make_canonical_path(file));
     std::string base_file(join_paths(base, path));
-    std::string resolved(resolve_file(base_file));
     if (style_sheets.count(base_file)) return base_file;
-    if (char* contents = read_file(resolved)) {
-      add_source(base_file, resolved, contents);
-      style_sheets[base_file] = 0;
-      return base_file;
+    std::vector<Sass_Queued> resolved(resolve_file(base, path));
+    if (resolved.size() > 1) {
+      std::stringstream msg_stream;
+      msg_stream << "It's not clear which file to import for ";
+      msg_stream << "'@import \"" << file << "\"'." << "\n";
+      msg_stream << "Candidates:" << "\n";
+      for (size_t i = 0, L = resolved.size(); i < L; ++i)
+      { msg_stream << "  " << resolved[i].load_path << "\n"; }
+      msg_stream << "Please delete or rename all but one of these files." << "\n";
+      error(msg_stream.str(), pstate);
+    }
+    if (resolved.size()) {
+      if (char* contents = read_file(resolved[0].abs_path)) {
+        add_source(base_file, resolved[0].abs_path, contents);
+        style_sheets[base_file] = 0;
+        size_t i = queue.size() - 1;
+        process_queue_entry(queue[i], i);
+        return base_file;
+      }
     }
     // now go the regular code path
     return add_file(path);
@@ -278,34 +293,45 @@ namespace Sass {
     emitter.finalize();
     OutputBuffer emitted = emitter.get_buffer();
     std::string output = emitted.buffer;
-    if (source_map_file != "" && !omit_source_map_url) {
-      output += linefeed + format_source_mapping_url(source_map_file);
+    if (!omit_source_map_url) {
+      if (source_map_embed) {
+       output += linefeed + format_embedded_source_map();
+      }
+      else if (source_map_file != "") {
+        output += linefeed + format_source_mapping_url(source_map_file);
+      }
     }
     return sass_strdup(output.c_str());
+  }
+
+  void Context::process_queue_entry(Sass_Queued& entry, size_t i)
+  {
+    if (style_sheets[queue[i].load_path]) return;
+    Sass_Import_Entry import = sass_make_import(
+      queue[i].load_path.c_str(),
+      queue[i].abs_path.c_str(),
+      0, 0
+    );
+    import_stack.push_back(import);
+    // keep a copy of the path around (for parser states)
+    strings.push_back(sass_strdup(queue[i].abs_path.c_str()));
+    ParserState pstate(strings.back(), queue[i].source, i);
+    Parser p(Parser::from_c_str(queue[i].source, *this, pstate));
+    Block* ast = p.parse();
+    sass_delete_import(import_stack.back());
+    import_stack.pop_back();
+    // ToDo: we store by load_path, which can lead
+    // to duplicates if importer reports the same path
+    // Maybe we should add an error for duplicates!?
+    style_sheets[queue[i].load_path] = ast;
   }
 
   Block* Context::parse_file()
   {
     Block* root = 0;
     for (size_t i = 0; i < queue.size(); ++i) {
-      Sass_Import_Entry import = sass_make_import(
-        queue[i].load_path.c_str(),
-        queue[i].abs_path.c_str(),
-        0, 0
-      );
-      import_stack.push_back(import);
-      // keep a copy of the path around (for parser states)
-      strings.push_back(sass_strdup(queue[i].abs_path.c_str()));
-      ParserState pstate(strings.back(), queue[i].source, i);
-      Parser p(Parser::from_c_str(queue[i].source, *this, pstate));
-      Block* ast = p.parse();
-      sass_delete_import(import_stack.back());
-      import_stack.pop_back();
-      if (i == 0) root = ast;
-      // ToDo: we store by load_path, which can lead
-      // to duplicates if importer reports the same path
-      // Maybe we should add an error for duplicates!?
-      style_sheets[queue[i].load_path] = ast;
+      process_queue_entry(queue[i], i);
+      if (i == 0) root = style_sheets[queue[i].load_path];
     }
     if (root == 0) return 0;
 
@@ -352,6 +378,8 @@ namespace Sass {
       return parse_file();
     }
     add_source(input_path, input_path, source_c_str);
+    size_t idx = queue.size() - 1;
+    process_queue_entry(queue[idx], idx);
     return parse_file();
   }
 
@@ -367,18 +395,21 @@ namespace Sass {
     return compile_block(parse_string());
   }
 
+  std::string Context::format_embedded_source_map()
+  {
+    std::string map = emitter.generate_source_map(*this);
+    std::istringstream is( map );
+    std::ostringstream buffer;
+    base64::encoder E;
+    E.encode(is, buffer);
+    std::string url = "data:application/json;base64," + buffer.str();
+    url.erase(url.size() - 1);
+    return "/*# sourceMappingURL=" + url + " */";
+  }
+
   std::string Context::format_source_mapping_url(const std::string& file)
   {
     std::string url = resolve_relative_path(file, output_path, cwd);
-    if (source_map_embed) {
-      std::string map = emitter.generate_source_map(*this);
-      std::istringstream is( map );
-      std::ostringstream buffer;
-      base64::encoder E;
-      E.encode(is, buffer);
-      url = "data:application/json;base64," + buffer.str();
-      url.erase(url.size() - 1);
-    }
     return "/*# sourceMappingURL=" + url + " */";
   }
 
@@ -392,15 +423,17 @@ namespace Sass {
   }
 
 
-  std::vector<std::string> Context::get_included_files(size_t skip)
+  // for data context we want to start after "stdin"
+  // we probably always want to skip the header includes?
+  std::vector<std::string> Context::get_included_files(bool skip, size_t headers)
   {
+      // create a copy of the vector for manupulations
       std::vector<std::string> includes = included_files;
       if (includes.size() == 0) return includes;
-      std::sort( includes.begin() + skip, includes.end() );
-      includes.erase( includes.begin(), includes.begin() + skip );
+      if (skip) { includes.erase( includes.begin(), includes.begin() + 1 + headers); }
+      else { includes.erase( includes.begin() + 1, includes.begin() + 1 + headers); }
       includes.erase( std::unique( includes.begin(), includes.end() ), includes.end() );
-      // the skip solution seems more robust, as we may have real files named stdin
-      // includes.erase( std::remove( includes.begin(), includes.end(), "stdin" ), includes.end() );
+      std::sort( includes.begin() + (skip ? 0 : 1), includes.end() );
       return includes;
   }
 
@@ -427,12 +460,13 @@ namespace Sass {
 
   void register_overload_stub(Context& ctx, std::string name, Env* env)
   {
-    Definition* stub = new (ctx.mem) Definition(ParserState("[built-in function]"),
-                                                0,
-                                                name,
-                                                0,
-                                                0,
-                                                true);
+    Definition* stub = SASS_MEMORY_NEW(ctx.mem, Definition,
+                                       ParserState("[built-in function]"),
+                                       0,
+                                       name,
+                                       0,
+                                       0,
+                                       true);
     (*env)[name + "[f]"] = stub;
   }
 

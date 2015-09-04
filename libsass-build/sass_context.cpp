@@ -325,6 +325,20 @@ extern "C" {
       c_ctx->source_map_string = 0;
       json_delete(json_err);
     }
+    catch (const char* e) {
+      std::stringstream msg_stream;
+      JsonNode* json_err = json_mkobject();
+      msg_stream << "Error: " << e << std::endl;
+      json_append_member(json_err, "status", json_mknumber(4));
+      json_append_member(json_err, "message", json_mkstring(e));
+      c_ctx->error_json = json_stringify(json_err, "  ");;
+      c_ctx->error_message = sass_strdup(msg_stream.str().c_str());
+      c_ctx->error_text = sass_strdup(e);
+      c_ctx->error_status = 4;
+      c_ctx->output_string = 0;
+      c_ctx->source_map_string = 0;
+      json_delete(json_err);
+    }
     catch (...) {
       std::stringstream msg_stream;
       JsonNode* json_err = json_mkobject();
@@ -497,21 +511,24 @@ extern "C" {
 
       // maybe skip some entries of included files
       // we do not include stdin for data contexts
-      size_t skip = 0;
+      bool skip = false;
 
       // dispatch to the correct render function
       if (c_ctx->type == SASS_CONTEXT_FILE) {
         root = cpp_ctx->parse_file();
       } else if (c_ctx->type == SASS_CONTEXT_DATA) {
         root = cpp_ctx->parse_string();
-        skip = 1; // skip first entry of includes
+        skip = true; // skip first entry of includes
       }
 
-      // skip all prefixed files?
-      skip += cpp_ctx->head_imports;
+      // skip all prefixed files? (ToDo: check srcmap)
+      // IMO source-maps should point to headers already
+      // therefore don't skip it for now. re-enable or
+      // remove completely once this is tested
+      size_t headers = cpp_ctx->head_imports;
 
       // copy the included files on to the context (dont forget to free)
-      if (root) copy_strings(cpp_ctx->get_included_files(skip), &c_ctx->included_files);
+      if (root) copy_strings(cpp_ctx->get_included_files(skip, headers), &c_ctx->included_files);
 
       // return parsed block
       return root;

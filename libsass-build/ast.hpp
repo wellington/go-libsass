@@ -53,6 +53,8 @@
 
 namespace Sass {
 
+  const double NUMBER_EPSILON = 0.00000000000001;
+
   // from boost (functional/hash):
   // http://www.boost.org/doc/libs/1_35_0/doc/html/hash/combine.html
   // Boost Software License - Version 1.0
@@ -219,6 +221,8 @@ namespace Sass {
     typename std::vector<T>::iterator begin() { return elements_.begin(); }
     typename std::vector<T>::const_iterator end() const { return elements_.end(); }
     typename std::vector<T>::const_iterator begin() const { return elements_.begin(); }
+    typename std::vector<T>::iterator erase(typename std::vector<T>::iterator el) { return elements_.erase(el); }
+    typename std::vector<T>::const_iterator erase(typename std::vector<T>::const_iterator el) { return elements_.erase(el); }
 
   };
   template <typename T>
@@ -303,6 +307,7 @@ namespace Sass {
       SUPPORTS,
       ATROOT,
       BUBBLE,
+      CONTENT,
       KEYFRAMERULE,
       DECLARATION,
       ASSIGNMENT,
@@ -334,6 +339,10 @@ namespace Sass {
     virtual bool   is_invisible() const { return false; }
     virtual bool   bubbles() { return false; }
     virtual Block* block()  { return 0; }
+    virtual bool has_content()
+    {
+      return statement_type_ == CONTENT;
+    }
   };
   inline Statement::~Statement() { }
 
@@ -356,8 +365,18 @@ namespace Sass {
     Block(ParserState pstate, size_t s = 0, bool r = false)
     : Statement(pstate),
       Vectorized<Statement*>(s),
-      is_root_(r), is_at_root_(false), has_hoistable_(false), has_non_hoistable_(false)
+      is_root_(r),
+      is_at_root_(false),
+      has_hoistable_(false),
+      has_non_hoistable_(false)
     { }
+    virtual bool has_content()
+    {
+      for (size_t i = 0, L = elements().size(); i < L; ++i) {
+        if (elements()[i]->has_content()) return true;
+      }
+      return Statement::has_content();
+    }
     Block* block() { return this; }
     ATTACH_OPERATIONS()
   };
@@ -371,6 +390,10 @@ namespace Sass {
     Has_Block(ParserState pstate, Block* b)
     : Statement(pstate), block_(b)
     { }
+    virtual bool has_content()
+    {
+      return block_->has_content() || Statement::has_content();
+    }
     virtual ~Has_Block() = 0;
   };
   inline Has_Block::~Has_Block() { }
@@ -382,9 +405,10 @@ namespace Sass {
   class Ruleset : public Has_Block {
     ADD_PROPERTY(Selector*, selector)
     ADD_PROPERTY(bool, at_root);
+    ADD_PROPERTY(bool, is_root);
   public:
     Ruleset(ParserState pstate, Selector* s = 0, Block* b = 0)
-    : Has_Block(pstate, b), selector_(s), at_root_(false)
+    : Has_Block(pstate, b), selector_(s), at_root_(false), is_root_(false)
     { statement_type(RULESET); }
     bool is_invisible() const;
     // nested rulesets need to be hoisted out of their enclosing blocks
@@ -432,12 +456,7 @@ namespace Sass {
     { statement_type(MEDIA); }
     bool bubbles() { return true; }
     bool is_hoistable() { return true; }
-    bool is_invisible() const {
-      bool is_invisible = true;
-      for (size_t i = 0, L = block()->length(); i < L && is_invisible; i++)
-        is_invisible &= (*block())[i]->is_invisible();
-      return is_invisible;
-    }
+    bool is_invisible() const;
     ATTACH_OPERATIONS()
   };
 
@@ -590,6 +609,8 @@ namespace Sass {
     Comment(ParserState pstate, String* txt, bool is_important)
     : Statement(pstate), text_(txt), is_important_(is_important)
     { statement_type(COMMENT); }
+    virtual bool is_invisible() const
+    { return is_important() == false; }
     ATTACH_OPERATIONS()
   };
 
@@ -766,7 +787,8 @@ namespace Sass {
   ///////////////////////////////////////////////////
   class Content : public Statement {
   public:
-    Content(ParserState pstate) : Statement(pstate) { }
+    Content(ParserState pstate) : Statement(pstate)
+    { statement_type(CONTENT); }
     ATTACH_OPERATIONS()
   };
 
@@ -1335,7 +1357,7 @@ namespace Sass {
   public:
     String_Schema(ParserState pstate, size_t size = 0, bool has_interpolants = false)
     : String(pstate), Vectorized<Expression*>(size), has_interpolants_(has_interpolants), hash_(0)
-    { }
+    { concrete_type(STRING); }
     std::string type() { return "string"; }
     static std::string type_name() { return "string"; }
 
@@ -1402,10 +1424,11 @@ namespace Sass {
   ////////////////////////////////////////////////////////
   class String_Quoted : public String_Constant {
   public:
-    String_Quoted(ParserState pstate, std::string val)
+    String_Quoted(ParserState pstate, std::string val, char q = 0)
     : String_Constant(pstate, val)
     {
       value_ = unquote(value_, &quote_mark_);
+      if (q && quote_mark_) quote_mark_ = q;
     }
     virtual bool operator==(const Expression& rhs) const;
     virtual std::string to_string(bool compressed = false, int precision = 5) const;
@@ -1466,7 +1489,7 @@ namespace Sass {
     Supports_Condition(ParserState pstate)
     : Expression(pstate)
     { }
-    virtual const bool needs_parens(Supports_Condition* cond) { return false; }
+    virtual bool needs_parens(Supports_Condition* cond) const { return false; }
     ATTACH_OPERATIONS()
   };
 
@@ -1484,7 +1507,7 @@ namespace Sass {
     Supports_Operator(ParserState pstate, Supports_Condition* l, Supports_Condition* r, Operand o)
     : Supports_Condition(pstate), left_(l), right_(r), operand_(o)
     { }
-    virtual const bool needs_parens(Supports_Condition* cond);
+    virtual bool needs_parens(Supports_Condition* cond) const;
     ATTACH_OPERATIONS()
   };
 
@@ -1498,7 +1521,7 @@ namespace Sass {
     Supports_Negation(ParserState pstate, Supports_Condition* c)
     : Supports_Condition(pstate), condition_(c)
     { }
-    virtual const bool needs_parens(Supports_Condition* cond);
+    virtual bool needs_parens(Supports_Condition* cond) const;
     ATTACH_OPERATIONS()
   };
 
@@ -1513,7 +1536,7 @@ namespace Sass {
     Supports_Declaration(ParserState pstate, Expression* f, Expression* v)
     : Supports_Condition(pstate), feature_(f), value_(v)
     { }
-    virtual const bool needs_parens(Supports_Condition* cond) { return false; }
+    virtual bool needs_parens(Supports_Condition* cond) const { return false; }
     ATTACH_OPERATIONS()
   };
 
@@ -1527,7 +1550,7 @@ namespace Sass {
     Supports_Interpolation(ParserState pstate, Expression* v)
     : Supports_Condition(pstate), value_(v)
     { }
-    virtual const bool needs_parens(Supports_Condition* cond) { return false; }
+    virtual bool needs_parens(Supports_Condition* cond) const { return false; }
     ATTACH_OPERATIONS()
   };
 
@@ -1706,11 +1729,6 @@ namespace Sass {
     { }
     ATTACH_OPERATIONS()
   };
-
-  //////////////////////////////////////////////////////////////////////////////////////////
-  // Additional method on Lists to retrieve values directly or from an encompassed Argument.
-  //////////////////////////////////////////////////////////////////////////////////////////
-  inline Expression* List::value_at_index(size_t i) { return is_arglist_ ? ((Argument*)(*this)[i])->value() : (*this)[i]; }
 
   /////////////////////////////////////////
   // Abstract base class for CSS selectors.
@@ -2051,6 +2069,7 @@ namespace Sass {
       { sum += (*this)[i]->specificity(); }
       return sum;
     }
+
     bool is_empty_reference()
     {
       return length() == 1 &&
@@ -2095,13 +2114,26 @@ namespace Sass {
     Complex_Selector(ParserState pstate,
                      Combinator c = ANCESTOR_OF,
                      Compound_Selector* h = 0,
-                     Complex_Selector* t = 0)
-    : Selector(pstate), combinator_(c), head_(h), tail_(t), reference_(0)
+                     Complex_Selector* t = 0,
+                     String* r = 0)
+    : Selector(pstate), combinator_(c), head_(h), tail_(t), reference_(r)
     {
       if ((h && h->has_reference())   || (t && t->has_reference()))   has_reference(true);
       if ((h && h->has_placeholder()) || (t && t->has_placeholder())) has_placeholder(true);
     }
     virtual bool has_parent_ref();
+
+    Complex_Selector* skip_empty_reference()
+    {
+      if ((!head_ || !head_->length() || head_->is_empty_reference()) &&
+          combinator() == Combinator::ANCESTOR_OF)
+      {
+        tail_->has_line_feed_ = this->has_line_feed_;
+        // tail_->has_line_break_ = this->has_line_break_;
+        return tail_ ? tail_->skip_empty_reference() : 0;
+      }
+      return this;
+    }
 
     // can still have a tail
     bool is_empty_ancestor() const
@@ -2120,6 +2152,8 @@ namespace Sass {
     // last returns the last real tail
     const Complex_Selector* last() const;
 
+    Selector_List* tails(Context& ctx, Selector_List* tails);
+
     // unconstant accessors
     Complex_Selector* first();
     Complex_Selector* last();
@@ -2129,15 +2163,14 @@ namespace Sass {
     Complex_Selector* innermost() { return last(); };
 
     size_t length() const;
-    Complex_Selector* parentize(Context& ctx);
     Selector_List* parentize(Selector_List* parents, Context& ctx);
-    Complex_Selector* parentize(Complex_Selector* parent, Context& ctx);
     virtual bool is_superselector_of(Compound_Selector* sub, std::string wrapping = "");
     virtual bool is_superselector_of(Complex_Selector* sub, std::string wrapping = "");
     virtual bool is_superselector_of(Selector_List* sub, std::string wrapping = "");
     // virtual Selector_Placeholder* find_placeholder();
     Selector_List* unify_with(Complex_Selector* rhs, Context& ctx);
     Combinator clear_innermost();
+    void append(Context&, Complex_Selector*);
     void set_innermost(Complex_Selector*, Combinator);
     virtual unsigned long specificity() const
     {
@@ -2210,9 +2243,6 @@ namespace Sass {
   // Comma-separated selector groups.
   ///////////////////////////////////
   class Selector_List : public Selector, public Vectorized<Complex_Selector*> {
-#ifdef DEBUG
-    ADD_PROPERTY(std::string, mCachedSelector)
-#endif
     ADD_PROPERTY(std::vector<std::string>, wspace)
   protected:
     void adjust_after_pushing(Complex_Selector* c);
@@ -2224,9 +2254,7 @@ namespace Sass {
     // basically unwraps parsed selectors
     void remove_parent_selectors();
     // virtual Selector_Placeholder* find_placeholder();
-    Selector_List* parentize(Context& ctx);
     Selector_List* parentize(Selector_List* parents, Context& ctx);
-    Selector_List* parentize(Complex_Selector* parent, Context& ctx);
     virtual bool is_superselector_of(Compound_Selector* sub, std::string wrapping = "");
     virtual bool is_superselector_of(Complex_Selector* sub, std::string wrapping = "");
     virtual bool is_superselector_of(Selector_List* sub, std::string wrapping = "");
@@ -2249,15 +2277,6 @@ namespace Sass {
     virtual bool operator==(const Selector_List& rhs) const;
     ATTACH_OPERATIONS()
   };
-
-  inline bool Ruleset::is_invisible() const {
-    bool is_invisible = true;
-    Selector_List* sl = static_cast<Selector_List*>(selector());
-    for (size_t i = 0, L = sl->length(); i < L && is_invisible; ++i)
-      is_invisible &= (*sl)[i]->has_placeholder();
-    return is_invisible;
-  }
-
 
   template<typename SelectorType>
   bool selectors_equal(const SelectorType& one, const SelectorType& two, bool simpleSelectorOrderDependent) {

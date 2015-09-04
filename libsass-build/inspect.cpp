@@ -420,7 +420,7 @@ namespace Sass {
       case Sass_OP::ADD: append_string(" + ");   break;
       case Sass_OP::SUB: append_string(" - ");   break;
       case Sass_OP::MUL: append_string(" * ");   break;
-      case Sass_OP::DIV: append_string("/");     break;
+      case Sass_OP::DIV: append_string(in_media_block ? " / " : "/"); break;
       case Sass_OP::MOD: append_string(" % ");   break;
       default: break; // shouldn't get here
     }
@@ -768,8 +768,8 @@ namespace Sass {
       }
     }
 
-    if (head && !head->is_empty_reference()) head->perform(this);
-    bool is_empty = head && head->is_empty_reference();
+    if (head && head->length() != 0) head->perform(this);
+    bool is_empty = !head || head->length() == 0 || head->is_empty_reference();
     bool is_tail = head && !head->is_empty_reference() && tail;
     if (output_style() == COMPRESSED && comb != Complex_Selector::ANCESTOR_OF) scheduled_space = 0;
 
@@ -821,6 +821,7 @@ namespace Sass {
       if ((*g)[i] == 0) continue;
       (*g)[i]->perform(this);
       if (i < L - 1) {
+        scheduled_space = 0;
         append_comma_separator();
       }
     }
