@@ -36,6 +36,8 @@ libsass-build:
 	# more stuff
 	cp -R libsass-src/src/*.hpp libsass-build
 	cp -R libsass-src/src/*.h libsass-build
+	cp -R libsass-src/src/b64 libsass-build
+	cp -R libsass-src/src/utf8 libsass-build
 	cp libsass-tmp/include/sass/version.h libsass-build/include/sass/version.h
 	touch libs/*.go
 
