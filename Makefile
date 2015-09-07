@@ -20,17 +20,19 @@ libsass-tmp: clean libsass-src $(SOURCES)
 			--disable-dependency-tracking
 
 CPSOURCES=libsass-build/*.cpp libsass-build/*.c libsass-build/*.h libsass-build/*.hpp
--include libsass-src/Makefile.conf
+
+libsass-src/Makefile.conf: fetch
+
+include libsass-src/Makefile.conf
 
 .PHONY: libsass-build
 libsass-build:
 	mkdir -p libsass-build/include
 	rm -rf $(CPSOURCES)
-	cp libsass-src/Makefile.conf libsass-build/Makefile.conf
+	echo $(CSOURCES)
 	cp -R $(addprefix libsass-src/src/,$(CSOURCES)) libsass-build
 	cp -R $(addprefix libsass-src/src/,$(SOURCES)) libsass-build
-	mkdir -p libsass-build/include/sass
-	cp -R libsass-src/include libsass-build/include
+	cp -R libsass-src/include libsass-build
 	# more stuff
 	cp -R libsass-src/src/*.hpp libsass-build
 	cp -R libsass-src/src/*.h libsass-build
