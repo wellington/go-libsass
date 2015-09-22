@@ -24,6 +24,7 @@ func SassMakeFunction(signature string, ptr unsafe.Pointer) SassFunc {
 		csign,
 		C.Sass_Function_Fn(C.CallSassFunction),
 		ptr)
+
 	return (SassFunc)(fn)
 }
 

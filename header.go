@@ -9,11 +9,13 @@ import (
 
 func (ctx *Context) SetHeaders(opts libs.SassOptions) {
 	// Push the headers into the local array
+	ghmu.RLock()
 	for _, gh := range globalHeaders {
 		if !ctx.Headers.Has(gh) {
 			ctx.Headers.Add(gh)
 		}
 	}
+	ghmu.RUnlock()
 
 	// Loop through headers creating ImportEntry
 	entries := make([]libs.ImportEntry, ctx.Headers.Len())
@@ -61,9 +63,12 @@ func (h *Headers) Len() int {
 	return len(h.h)
 }
 
+var ghmu sync.RWMutex
 var globalHeaders []string
 
 // RegisterHeader fifo
 func RegisterHeader(body string) {
+	ghmu.Lock()
 	globalHeaders = append(globalHeaders, body)
+	ghmu.Unlock()
 }

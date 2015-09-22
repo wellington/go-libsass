@@ -34,15 +34,6 @@ type ImportEntry struct {
 	SrcMap string
 }
 
-func GetEntry(es []ImportEntry, parent string, path string) (string, error) {
-	for _, e := range es {
-		if parent == e.Parent && path == e.Path {
-			return e.Source, nil
-		}
-	}
-	return "", errors.New("entry not found")
-}
-
 //export HeaderBridge
 func HeaderBridge(ptr unsafe.Pointer) C.Sass_Import_List {
 	entries := *(*[]ImportEntry)(ptr)
@@ -70,12 +61,22 @@ func HeaderBridge(ptr unsafe.Pointer) C.Sass_Import_List {
 	return cents
 }
 
+func GetEntry(es []ImportEntry, parent string, path string) (string, error) {
+	for _, e := range es {
+		if parent == e.Parent && path == e.Path {
+			return e.Source, nil
+		}
+	}
+	return "", errors.New("entry not found")
+}
+
 // ImporterBridge is called by C to pass Importer arguments into Go land. A
 // Sass_Import is returned for libsass to resolve.
 //
 //export ImporterBridge
 func ImporterBridge(url *C.char, prev *C.char, ptr unsafe.Pointer) C.Sass_Import_List {
 	entries := *(*[]ImportEntry)(ptr)
+
 	parent := C.GoString(prev)
 	rel := C.GoString(url)
 	list := C.sass_make_import_list(1)
