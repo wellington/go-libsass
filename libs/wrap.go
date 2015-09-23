@@ -37,7 +37,12 @@ type ImportEntry struct {
 
 //export HeaderBridge
 func HeaderBridge(ptr unsafe.Pointer) C.Sass_Import_List {
-	entries := *(*[]ImportEntry)(ptr)
+	idx := (*string)(ptr)
+	entries, ok := globalHeaders.get(idx).([]ImportEntry)
+	if !ok {
+		fmt.Printf("failed to resolve header slice: %p\n", ptr)
+		return C.sass_make_import_list(C.size_t(1))
+	}
 
 	cents := C.sass_make_import_list(C.size_t(len(entries)))
 

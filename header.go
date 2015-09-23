@@ -30,7 +30,7 @@ func (ctx *Context) SetHeaders(opts libs.SassOptions) {
 		}
 	}
 	// ctx.entries = &entries
-	libs.BindHeader(opts, &entries)
+	libs.BindHeader(opts, entries)
 }
 
 type Header struct {
