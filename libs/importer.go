@@ -35,14 +35,14 @@ import (
 // delete it
 type SafeMap struct {
 	sync.RWMutex
-	m map[string]interface{}
+	m map[*string]interface{}
 }
 
 func (s *SafeMap) init() {
-	s.m = make(map[string]interface{})
+	s.m = make(map[*string]interface{})
 }
 
-func (s *SafeMap) get(idx string) interface{} {
+func (s *SafeMap) get(idx *string) interface{} {
 	s.RLock()
 	defer s.RUnlock()
 	return s.m[idx]
@@ -58,16 +58,16 @@ func randString(n int) string {
 	return string(b)
 }
 
-func (s *SafeMap) delete(idx string) {
+func (s *SafeMap) delete(idx *string) {
 	s.Lock()
 	delete(s.m, idx)
 	s.Unlock()
 }
 
 // set accepts an entry and returns an index for it
-func (s *SafeMap) set(ie interface{}) string {
-	idx := randString(8)
-
+func (s *SafeMap) set(ie interface{}) *string {
+	i := randString(8)
+	idx := &i
 	s.Lock()
 	s.m[idx] = ie
 	defer s.Unlock()
@@ -85,7 +85,7 @@ func init() {
 func BindImporter(opts SassOptions, entries []ImportEntry) {
 
 	idx := globalImports.set(entries)
-	ptr := unsafe.Pointer(&idx)
+	ptr := unsafe.Pointer(idx)
 
 	imper := C.sass_make_importer(
 		C.Sass_Importer_Fn(C.SassImporterHandler),

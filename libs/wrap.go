@@ -77,9 +77,12 @@ func GetEntry(es []ImportEntry, parent string, path string) (string, error) {
 //export ImporterBridge
 func ImporterBridge(url *C.char, prev *C.char, ptr unsafe.Pointer) C.Sass_Import_List {
 	// Retrieve the index
-	fmt.Printf("iBridge: % #v\n", ptr)
-	idx := *(*string)(ptr)
-	entries := globalImports.get(idx).([]ImportEntry)
+	idx := (*string)(ptr)
+	entries, ok := globalImports.get(idx).([]ImportEntry)
+	if !ok {
+		fmt.Printf("failed to resolve import slice: %p\n", ptr)
+		entries = []ImportEntry{}
+	}
 
 	parent := C.GoString(prev)
 	rel := C.GoString(url)

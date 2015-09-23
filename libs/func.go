@@ -28,9 +28,25 @@ func SassMakeFunction(signature string, ptr unsafe.Pointer) SassFunc {
 	return (SassFunc)(fn)
 }
 
+var globalFuncs SafeMap
+
+func init() {
+	globalFuncs.init()
+}
+
 // BindFuncs attaches a slice of Functions to a sass options. Signatures
 // are already defined in the SassFunc.
-func BindFuncs(opts SassOptions, funcs []SassFunc) {
+func BindFuncs(opts SassOptions, cookies []Cookie) {
+
+	funcs := make([]SassFunc, len(cookies))
+	for i, cookie := range cookies {
+		idx := globalFuncs.set(cookies[i])
+
+		fn := SassMakeFunction(cookie.Sign,
+			unsafe.Pointer(idx))
+		funcs[i] = fn
+	}
+
 	sz := C.size_t(len(funcs))
 	cfuncs := C.sass_make_function_list(sz)
 	for i, cfn := range funcs {

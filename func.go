@@ -1,11 +1,6 @@
 package libsass
 
-import (
-	"runtime"
-	"unsafe"
-
-	"github.com/wellington/go-libsass/libs"
-)
+import "github.com/wellington/go-libsass/libs"
 
 // HandlerFunc describes the method signature for registering
 // a Go function to be called by libsass.
@@ -90,17 +85,5 @@ func (ctx *Context) SetFunc(goopts libs.SassOptions) {
 			Ctx:  ctx,
 		}
 	}
-	// TODO: this seems to run fine with garbage collection on
-	// surprisingly enough
-	// disable garbage collection of cookies. These need to
-	// be manually freed in the wrapper
-	// runtime.SetFinalizer(&cookies, nil)
-	gofns := make([]libs.SassFunc, len(cookies))
-	runtime.SetFinalizer(&gofns, nil)
-	for i, cookie := range cookies {
-		fn := libs.SassMakeFunction(cookie.Sign,
-			unsafe.Pointer(&cookies[i]))
-		gofns[i] = fn
-	}
-	libs.BindFuncs(goopts, gofns)
+	libs.BindFuncs(goopts, cookies)
 }

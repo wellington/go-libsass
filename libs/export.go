@@ -4,6 +4,7 @@ package libs
 //
 import "C"
 import (
+	"fmt"
 	"sync"
 	"unsafe"
 )
@@ -29,10 +30,14 @@ var gobridgeMu sync.Mutex
 //
 //export GoBridge
 func GoBridge(cargs UnionSassValue, ptr unsafe.Pointer) UnionSassValue {
-	// gobridgeMu.Lock()
-	// defer gobridgeMu.Unlock()
 	// Recover the Cookie struct passed in
-	ck := *(*Cookie)(ptr)
+	idx := (*string)(ptr)
+	ck, ok := globalFuncs.get(idx).(Cookie)
+	if !ok {
+		fmt.Printf("failed to resolve Cookie %p\n", ptr)
+		return MakeNil()
+	}
+	// ck := *(*Cookie)(ptr)
 
 	var usv UnionSassValue
 	err := ck.Fn(ck.Ctx, cargs, &usv)
