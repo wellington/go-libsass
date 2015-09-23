@@ -62,7 +62,6 @@ type Context struct {
 
 	// Safe place to store memory allocations for C
 	entries *[]libs.ImportEntry
-	cookies *[]libs.Cookie
 }
 
 // Constants/enums for the output style.

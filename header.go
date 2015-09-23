@@ -29,7 +29,8 @@ func (ctx *Context) SetHeaders(opts libs.SassOptions) {
 			SrcMap: "",
 		}
 	}
-	libs.BindHeader(opts, entries)
+	// ctx.entries = &entries
+	libs.BindHeader(opts, &entries)
 }
 
 type Header struct {

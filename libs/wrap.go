@@ -12,6 +12,7 @@ import "C"
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 	"strings"
 	"unsafe"
@@ -75,7 +76,10 @@ func GetEntry(es []ImportEntry, parent string, path string) (string, error) {
 //
 //export ImporterBridge
 func ImporterBridge(url *C.char, prev *C.char, ptr unsafe.Pointer) C.Sass_Import_List {
-	entries := *(*[]ImportEntry)(ptr)
+	// Retrieve the index
+	fmt.Printf("iBridge: % #v\n", ptr)
+	idx := *(*string)(ptr)
+	entries := globalImports.get(idx).([]ImportEntry)
 
 	parent := C.GoString(prev)
 	rel := C.GoString(url)

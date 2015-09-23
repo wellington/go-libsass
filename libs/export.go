@@ -3,7 +3,10 @@ package libs
 // #include "sass/context.h"
 //
 import "C"
-import "unsafe"
+import (
+	"sync"
+	"unsafe"
+)
 
 // SassCallback defines the callback libsass eventually executes in
 // sprite_sass
@@ -18,13 +21,19 @@ type Cookie struct {
 	Ctx  interface{}
 }
 
+// gate gobridge, it has some unknown race conditions
+var gobridgeMu sync.Mutex
+
 // GoBridge is exported to C for linking libsass to Go.  This function
 // adheres to the interface provided by libsass.
 //
 //export GoBridge
 func GoBridge(cargs UnionSassValue, ptr unsafe.Pointer) UnionSassValue {
+	// gobridgeMu.Lock()
+	// defer gobridgeMu.Unlock()
 	// Recover the Cookie struct passed in
 	ck := *(*Cookie)(ptr)
+
 	var usv UnionSassValue
 	err := ck.Fn(ck.Ctx, cargs, &usv)
 	_ = err

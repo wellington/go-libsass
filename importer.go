@@ -3,7 +3,6 @@ package libsass
 import (
 	"errors"
 	"io"
-	"runtime"
 	"sync"
 	"time"
 
@@ -108,8 +107,7 @@ func (ctx *Context) SetImporters(opts libs.SassOptions) {
 		}
 		i++
 	}
-	runtime.SetFinalizer(&entries, nil)
+
 	// set entries somewhere so GC doesn't collect it
-	ctx.entries = &entries
 	libs.BindImporter(opts, entries)
 }

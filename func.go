@@ -94,9 +94,9 @@ func (ctx *Context) SetFunc(goopts libs.SassOptions) {
 	// surprisingly enough
 	// disable garbage collection of cookies. These need to
 	// be manually freed in the wrapper
-	runtime.SetFinalizer(&cookies, nil)
-	ctx.cookies = &cookies
+	// runtime.SetFinalizer(&cookies, nil)
 	gofns := make([]libs.SassFunc, len(cookies))
+	runtime.SetFinalizer(&gofns, nil)
 	for i, cookie := range cookies {
 		fn := libs.SassMakeFunction(cookie.Sign,
 			unsafe.Pointer(&cookies[i]))
