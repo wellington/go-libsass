@@ -98,7 +98,6 @@ func (ctx *Context) Init(goopts libs.SassOptions) libs.SassOptions {
 		ctx.Precision = 5
 	}
 
-	Mixins(ctx)
 	ctx.Headers.Bind(goopts)
 	ctx.Imports.Bind(goopts)
 	ctx.Funcs.Bind(goopts)
