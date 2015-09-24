@@ -12,7 +12,9 @@ var globalHeaders []string
 
 // RegisterHeader fifo
 func RegisterHeader(body string) {
+	ghMu.Lock()
 	globalHeaders = append(globalHeaders, body)
+	ghMu.Unlock()
 }
 
 type Header struct {
@@ -40,11 +42,13 @@ func NewHeaders() *Headers {
 
 func (hdrs *Headers) Bind(opts libs.SassOptions) {
 	// Push the headers into the local array
+	ghMu.RLock()
 	for _, gh := range globalHeaders {
 		if !hdrs.Has(gh) {
 			hdrs.Add(gh)
 		}
 	}
+	ghMu.RUnlock()
 
 	// Loop through headers creating ImportEntry
 	entries := make([]libs.ImportEntry, hdrs.Len())
