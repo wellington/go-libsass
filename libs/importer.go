@@ -82,7 +82,7 @@ func init() {
 }
 
 // BindImporter attaches a custom importer Go function to an import in Sass
-func BindImporter(opts SassOptions, entries []ImportEntry) {
+func BindImporter(opts SassOptions, entries []ImportEntry) *string {
 
 	idx := globalImports.set(entries)
 	ptr := unsafe.Pointer(idx)
@@ -99,4 +99,5 @@ func BindImporter(opts SassOptions, entries []ImportEntry) {
 		(*C.struct_Sass_Options)(unsafe.Pointer(opts)),
 		impers,
 	)
+	return idx
 }

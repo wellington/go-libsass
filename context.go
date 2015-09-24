@@ -99,7 +99,7 @@ func (ctx *Context) Init(goopts libs.SassOptions) libs.SassOptions {
 
 	Mixins(ctx)
 	ctx.Headers.Bind(goopts)
-	ctx.SetImporters(goopts)
+	ctx.Imports.Bind(goopts)
 	ctx.SetFunc(goopts)
 	libs.SetIncludePaths(goopts, ctx.IncludePaths)
 	libs.SassOptionSetPrecision(goopts, ctx.Precision)
