@@ -8,6 +8,13 @@ import (
 	"github.com/wellington/go-libsass/libs"
 )
 
+var globalHeaders []string
+
+// RegisterHeader fifo
+func RegisterHeader(body string) {
+	globalHeaders = append(globalHeaders, body)
+}
+
 type Header struct {
 	idx     *string
 	Content string
@@ -86,11 +93,4 @@ func (h *Headers) Has(s string) bool {
 
 func (h *Headers) Len() int {
 	return len(h.h)
-}
-
-var globalHeaders []string
-
-// RegisterHeader fifo
-func RegisterHeader(body string) {
-	globalHeaders = append(globalHeaders, body)
 }

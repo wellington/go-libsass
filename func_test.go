@@ -17,11 +17,10 @@ func TestFunc_simpletypes(t *testing.T) {
 
 	//var out bytes.Buffer
 	ctx := NewContext()
-	ctx.Cookies = make([]Cookie, 1)
 	// Communication channel for the C Sass callback function
 	ch := make(chan []interface{}, 1)
 
-	ctx.Cookies[0] = Cookie{
+	ctx.Funcs.Add(Func{
 
 		Sign: "foo($null, $num, $str, $bool)",
 		Fn: Handler(func(v interface{}, req SassValue, res *SassValue) error {
@@ -39,7 +38,7 @@ func TestFunc_simpletypes(t *testing.T) {
 			return nil
 		}),
 		Ctx: &ctx,
-	}
+	})
 	var out bytes.Buffer
 	err := ctx.Compile(in, &out)
 	if err != nil {
@@ -70,11 +69,10 @@ func TestFunc_colortype(t *testing.T) {
 
 	//var out bytes.Buffer
 	ctx := NewContext()
-	ctx.Cookies = make([]Cookie, 1)
 	// Communication channel for the C Sass callback function
 	ch := make(chan []interface{}, 1)
 
-	ctx.Cookies[0] = Cookie{
+	ctx.Funcs.Add(Func{
 		Sign: "foo($color)",
 		Fn: func(v interface{}, usv libs.UnionSassValue, rsv *libs.UnionSassValue) error {
 			// Send the interface fn arguments to the ch channel
@@ -89,7 +87,7 @@ func TestFunc_colortype(t *testing.T) {
 			return nil
 		},
 		Ctx: &ctx,
-	}
+	})
 	var out bytes.Buffer
 	err := ctx.Compile(in, &out)
 	if err != nil {
@@ -118,11 +116,8 @@ func TestFunc_complextypes(t *testing.T) {
 
 	var out bytes.Buffer
 	ctx := NewContext()
-	if ctx.Cookies == nil {
-		ctx.Cookies = make([]Cookie, 1)
-	}
 	ch := make(chan interface{}, 1)
-	ctx.Cookies[0] = Cookie{
+	ctx.Funcs.Add(Func{
 		Sign: "foo($list)",
 		Fn: func(v interface{}, usv libs.UnionSassValue, rsv *libs.UnionSassValue) error {
 			var sv interface{}
@@ -133,7 +128,7 @@ func TestFunc_complextypes(t *testing.T) {
 			return nil
 		},
 		Ctx: &ctx,
-	}
+	})
 	err := ctx.Compile(in, &out)
 	if err != nil {
 		t.Error(err)
@@ -164,15 +159,12 @@ func TestFunc_customarity(t *testing.T) {
 
 	var out bytes.Buffer
 	ctx := NewContext()
-	if ctx.Cookies == nil {
-		ctx.Cookies = make([]Cookie, 1)
-	}
 
-	ctx.Cookies[0] = Cookie{
+	ctx.Funcs.Add(Func{
 		Sign: "foo()",
 		Fn:   TestCallback,
 		Ctx:  &ctx,
-	}
+	})
 	err := ctx.Compile(in, &out)
 	if err == nil {
 		t.Error("No error thrown for incorrect arity")
