@@ -50,7 +50,7 @@ type Context struct {
 	// Headers are a map of strings to start any Sass project with. Any
 	// header listed here will be present before any other Sass code is
 	// compiled.
-	Headers Headers
+	Headers *Headers
 
 	// ResolvedImports is the list of files libsass used to compile this
 	// Sass sheet.
@@ -84,7 +84,9 @@ func init() {
 }
 
 func NewContext() *Context {
-	c := Context{}
+	c := Context{
+		Headers: NewHeaders(),
+	}
 
 	return &c
 }
@@ -96,8 +98,7 @@ func (ctx *Context) Init(goopts libs.SassOptions) libs.SassOptions {
 	}
 
 	Mixins(ctx)
-
-	ctx.SetHeaders(goopts)
+	ctx.Headers.Bind(goopts)
 	ctx.SetImporters(goopts)
 	ctx.SetFunc(goopts)
 	libs.SetIncludePaths(goopts, ctx.IncludePaths)

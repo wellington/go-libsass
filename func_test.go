@@ -16,7 +16,7 @@ func TestFunc_simpletypes(t *testing.T) {
 }`)
 
 	//var out bytes.Buffer
-	ctx := Context{}
+	ctx := NewContext()
 	ctx.Cookies = make([]Cookie, 1)
 	// Communication channel for the C Sass callback function
 	ch := make(chan []interface{}, 1)
@@ -69,7 +69,7 @@ func TestFunc_colortype(t *testing.T) {
 }`)
 
 	//var out bytes.Buffer
-	ctx := Context{}
+	ctx := NewContext()
 	ctx.Cookies = make([]Cookie, 1)
 	// Communication channel for the C Sass callback function
 	ch := make(chan []interface{}, 1)
@@ -117,7 +117,7 @@ func TestFunc_complextypes(t *testing.T) {
 	   }`)
 
 	var out bytes.Buffer
-	ctx := Context{}
+	ctx := NewContext()
 	if ctx.Cookies == nil {
 		ctx.Cookies = make([]Cookie, 1)
 	}
@@ -163,7 +163,7 @@ func TestFunc_customarity(t *testing.T) {
 }`)
 
 	var out bytes.Buffer
-	ctx := Context{}
+	ctx := NewContext()
 	if ctx.Cookies == nil {
 		ctx.Cookies = make([]Cookie, 1)
 	}

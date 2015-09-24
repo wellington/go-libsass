@@ -34,7 +34,7 @@ p {
 }`)
 
 	var out bytes.Buffer
-	ctx := Context{}
+	ctx := NewContext()
 	err := ctx.Compile(in, &out)
 	if err != nil {
 		panic(err)
@@ -58,7 +58,7 @@ p {
 
 func TestContextNilRun(t *testing.T) {
 	var in, out bytes.Buffer
-	ctx := Context{}
+	ctx := NewContext()
 	err := ctx.Compile(&in, &out)
 	if err == nil {
 		t.Error("No error returned")
@@ -80,7 +80,7 @@ div {
 `)
 
 	var out bytes.Buffer
-	ctx := Context{}
+	ctx := NewContext()
 	err := ctx.Compile(in, &out)
 	if err != nil {
 		panic(err)
@@ -104,7 +104,7 @@ func TestLibsassError(t *testing.T) {
 }`)
 
 	var out bytes.Buffer
-	ctx := Context{}
+	ctx := NewContext()
 	if ctx.Cookies == nil {
 		ctx.Cookies = make([]Cookie, 1)
 	}
@@ -141,9 +141,8 @@ func ExampleContext_Compile() {
 			}`)
 
 	var out bytes.Buffer
-	ctx := Context{
+	ctx := NewContext()
 	//Customs: []string{"foo()"},
-	}
 	if ctx.Cookies == nil {
 		ctx.Cookies = make([]Cookie, 1)
 	}
