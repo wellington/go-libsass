@@ -1,7 +1,6 @@
 package libsass
 
 import (
-	"fmt"
 	"strconv"
 	"sync"
 
@@ -72,9 +71,7 @@ func (hdrs *Headers) Close() {
 	// Clean up memory reserved for headers
 	libs.RemoveHeaders(hdrs.idx)
 	close(hdrs.closing)
-	fmt.Println("waiting")
 	hdrs.wg.Wait()
-	fmt.Println("waited")
 }
 
 func (h *Headers) Add(s string) {

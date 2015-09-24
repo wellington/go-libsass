@@ -101,3 +101,8 @@ func BindImporter(opts SassOptions, entries []ImportEntry) *string {
 	)
 	return idx
 }
+
+func RemoveImporter(idx *string) error {
+	delete(globalImports.m, idx)
+	return nil
+}

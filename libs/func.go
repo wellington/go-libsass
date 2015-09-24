@@ -36,15 +36,17 @@ func init() {
 
 // BindFuncs attaches a slice of Functions to a sass options. Signatures
 // are already defined in the SassFunc.
-func BindFuncs(opts SassOptions, cookies []Cookie) {
+func BindFuncs(opts SassOptions, cookies []Cookie) []*string {
 
 	funcs := make([]SassFunc, len(cookies))
+	ids := make([]*string, len(cookies))
 	for i, cookie := range cookies {
 		idx := globalFuncs.set(cookies[i])
 
 		fn := SassMakeFunction(cookie.Sign,
 			unsafe.Pointer(idx))
 		funcs[i] = fn
+		ids[i] = idx
 	}
 
 	sz := C.size_t(len(funcs))
@@ -53,4 +55,12 @@ func BindFuncs(opts SassOptions, cookies []Cookie) {
 		C.sass_function_set_list_entry(cfuncs, C.size_t(i), cfn)
 	}
 	C.sass_option_set_c_functions(opts, cfuncs)
+	return ids
+}
+
+func RemoveFuncs(ids []*string) error {
+	for _, idx := range ids {
+		delete(globalFuncs.m, idx)
+	}
+	return nil
 }

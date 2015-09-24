@@ -1,6 +1,7 @@
 package libsass
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/wellington/go-libsass/libs"
@@ -81,7 +82,7 @@ type Funcs struct {
 	wg      sync.WaitGroup
 	closing chan struct{}
 	f       []Func
-	idx     *string
+	idx     []*string
 
 	// Func are complex, we need a reference to the entire context to
 	// successfully execute them.
@@ -124,5 +125,14 @@ func (fs *Funcs) Bind(goopts libs.SassOptions) {
 			Ctx:  fs.ctx,
 		}
 	}
-	libs.BindFuncs(goopts, cookies)
+	fs.idx = libs.BindFuncs(goopts, cookies)
+}
+
+func (fs *Funcs) Close() {
+	err := libs.RemoveFuncs(fs.idx)
+	if err != nil {
+		fmt.Println("error cleaning up funcs", err)
+	}
+	close(fs.closing)
+	fs.wg.Wait()
 }
