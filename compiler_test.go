@@ -13,7 +13,7 @@ func TestCompiler_stdin(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = comp.Start()
+	err = comp.Run()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -33,7 +33,7 @@ func TestCompiler_path(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = comp.Start()
+	err = comp.Run()
 	if err != nil {
 		t.Fatal(err)
 	}
