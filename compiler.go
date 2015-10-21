@@ -1,9 +1,76 @@
 package libsass
 
-import "io"
+import (
+	"errors"
+	"io"
+)
 
 type Compiler interface {
 	Run() error
+	Imports() []string
+}
+
+// Precision specifies the number of points beyond the decimal place is
+// preserved during math calculations.
+func Precision(prec int) options {
+	return func(c *Sass) error {
+		c.ctx.Precision = prec
+		return nil
+	}
+}
+
+// Comments toggles whether comments should be included in the output
+func Comments(b bool) options {
+	return func(c *Sass) error {
+		c.ctx.Comments = b
+		return nil
+	}
+}
+
+// SetIncludePaths adds additional directories to search for Sass files
+func SetIncludePaths(includes []string) options {
+	return func(c *Sass) error {
+		c.includePaths = includes
+		c.ctx.IncludePaths = includes
+		return nil
+	}
+}
+
+// SetSourceMap behaves differently depending on compiler used. For
+// compile, it will embed sourcemap into the source. For file compile,
+// it will include a separate file with the source map.
+func SetSourceMap(b bool) options {
+	return func(c *Sass) error {
+		c.ctx.includeMap = b
+		return nil
+	}
+}
+
+// SetImgBuildDir specifies where to place images
+func SetImgBuildDir(path string) options {
+	return func(c *Sass) error {
+		c.ctx.GenImgDir = path
+		return nil
+	}
+}
+
+// SetFontPath specifies where to find fonts
+func SetFontPath(path string) options {
+	return func(c *Sass) error {
+		c.ctx.FontDir = path
+		return nil
+	}
+}
+
+// SetBasePath sets the internal path provided to handlers requiring
+// a base path for http calls. This is useful for hosted solutions that
+// need to provided absolute paths to assets.
+func SetBasePath(basePath string) options {
+	return func(c *Sass) error {
+		c.httpPath = basePath
+		c.ctx.HTTPPath = basePath
+		return nil
+	}
 }
 
 // SetPath specifies a file to read instead of using the provided
@@ -39,20 +106,40 @@ func New(dst io.Writer, src io.Reader, options ...options) (Compiler, error) {
 	return c, nil
 }
 
+// Sass implements compiler interface for Sass and Scss stylesheets. To
+// configure the compiler, use the options method.
 type Sass struct {
-	ctx     *Context
-	dst     io.Writer
-	src     io.Reader
-	srcFile string
+	ctx          *Context
+	dst          io.Writer
+	src          io.Reader
+	srcFile      string
+	httpPath     string
+	includePaths []string
+	imports      []string
 }
 
+var _ Compiler = &Sass{}
+
 func (c *Sass) run() error {
+	defer func() {
+		c.imports = c.ctx.ResolvedImports
+	}()
+
 	if len(c.srcFile) > 0 {
 		return c.ctx.FileCompile(c.srcFile, c.dst)
 	}
 	return c.ctx.Compile(c.src, c.dst)
 }
 
+// Run starts transforming S[c|a]ss to CSS
 func (c *Sass) Run() error {
 	return c.run()
 }
+
+// Imports returns the full list of partials used to build the output
+// stylesheet.
+func (c *Sass) Imports() []string {
+	return c.imports
+}
+
+var ErrNoCompile = errors.New("No compile has occurred")

@@ -44,4 +44,9 @@ func TestCompiler_path(t *testing.T) {
 	if e != dst.String() {
 		t.Errorf("got: %s wanted: %s", dst.String(), e)
 	}
+
+	if e := 1; len(comp.Imports()) != e {
+		t.Errorf("got: %d wanted: %d", len(comp.Imports()), e)
+	}
+
 }
