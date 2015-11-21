@@ -7,21 +7,21 @@ import (
 )
 
 func main() {
-	run("blah.scss")
+	//run("blah.scss")
 	run("error.scss")
 }
 
 func run(path string) {
 
-	cheads := libs.SassMakeImporterList(1)
+	//cheads := libs.SassMakeImporterList(1)
 
 	gofc := libs.SassMakeFileContext(path)
-	goopts := libs.SassFileContextGetOptions(gofc)
-	libs.SassOptionSetCHeaders(goopts, cheads)
+	// goopts := libs.SassFileContextGetOptions(gofc)
+	// libs.SassOptionSetCHeaders(goopts, cheads)
 
-	libs.SassOptionSetOutputStyle(goopts, 2)
+	// libs.SassOptionSetOutputStyle(goopts, 2)
 	// Set options
-	libs.SassFileContextSetOptions(gofc, goopts)
+	// libs.SassFileContextSetOptions(gofc, goopts)
 
 	goctx := libs.SassFileContextGetContext(gofc)
 	gocomp := libs.SassMakeFileCompiler(gofc)
