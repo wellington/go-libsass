@@ -11,15 +11,18 @@ type Compiler interface {
 	Option(...option) error
 
 	ImgDir() string
-	CacheBust() bool
+	CacheBust() string
 
 	// Context() is deprecated, provided here as a bridge to the future
 	Context() *Context
 }
 
 // CacheBust append timestamps to static assets to prevent caching
-func CacheBust(t bool) option {
+func CacheBust(t string) option {
 	return func(c *Sass) error {
+		if t == "ts" {
+			t = "timestamp"
+		}
 		c.cachebust = t
 		return nil
 	}
@@ -170,7 +173,7 @@ type Sass struct {
 	src     io.Reader
 	srcFile string
 
-	cachebust    bool
+	cachebust    string
 	httpPath     string
 	includePaths []string
 	imports      []string
@@ -195,7 +198,7 @@ func (c *Sass) run() error {
 	return c.ctx.Compile(c.src, c.dst)
 }
 
-func (c *Sass) CacheBust() bool {
+func (c *Sass) CacheBust() string {
 	return c.cachebust
 }
 
