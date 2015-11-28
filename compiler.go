@@ -12,6 +12,7 @@ type Compiler interface {
 
 	ImgDir() string
 	CacheBust() string
+	LineComments() bool
 
 	// Context() is deprecated, provided here as a bridge to the future
 	Context() *Context
@@ -24,6 +25,14 @@ func CacheBust(t string) option {
 			t = "timestamp"
 		}
 		c.cachebust = t
+		return nil
+	}
+}
+
+// LineComments removes the line by line playby of the Sass compiler
+func LineComments(b bool) option {
+	return func(c *Sass) error {
+		c.cmt = b
 		return nil
 	}
 }
@@ -177,6 +186,7 @@ type Sass struct {
 	httpPath     string
 	includePaths []string
 	imports      []string
+	cmt          bool
 	// payload is passed around for handlers to have context
 	payload interface{}
 }
@@ -227,6 +237,10 @@ func (c *Sass) Run() error {
 // stylesheet.
 func (c *Sass) Imports() []string {
 	return c.imports
+}
+
+func (c *Sass) LineComments() bool {
+	return c.cmt
 }
 
 var ErrNoCompile = errors.New("No compile has occurred")
