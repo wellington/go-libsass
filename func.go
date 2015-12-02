@@ -37,6 +37,7 @@ func NewCompilerContext(c Compiler) context.Context {
 
 var ErrCompilerNotFound = errors.New("compiler not found")
 
+// CompFromCtx retrieves a compiler from a passed context
 func CompFromCtx(ctx context.Context) (Compiler, error) {
 	v := ctx.Value(compkey)
 	comp, ok := v.(Compiler)

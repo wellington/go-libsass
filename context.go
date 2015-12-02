@@ -97,7 +97,7 @@ func NewContext() *Context {
 	}
 	// FIXME: this doesn't actually work for new options being added
 	// to just the compiler
-	c.compiler = &Sass{ctx: c}
+	c.compiler = &sass{ctx: c}
 	c.Funcs = NewFuncs(c)
 	return c
 }
