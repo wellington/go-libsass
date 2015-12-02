@@ -103,7 +103,7 @@ func Handler(h HandlerFunc) libs.SassCallback {
 			*rsv = libs.MakeNil()
 		}
 		req := SassValue{value: usv}
-		res := SassValue{}
+		res := SassValue{value: *rsv}
 		err := h(v, req, &res)
 
 		if rsv != nil {
