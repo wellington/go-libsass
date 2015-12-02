@@ -34,7 +34,7 @@ func TestFile_resolved(t *testing.T) {
 
 	relPath := strings.TrimPrefix(ctx.ResolvedImports[0], abs)
 
-	if e := string(filepath.Separator) + path; relPath != e {
+	if !strings.HasSuffix(relPath, path) {
 		t.Errorf("got: %s wanted: %s", relPath, e)
 	}
 
