@@ -9,6 +9,7 @@ import (
 
 var (
 	ErrPayloadEmpty = errors.New("empty payload")
+	ErrNoCompile    = errors.New("No compile has occurred")
 )
 
 // Pather describes the file system paths necessary for a project
@@ -24,18 +25,31 @@ type Pather interface {
 // for adding imports and specifying build options necessary to do the
 // transformation.
 //
-// Run() does a synchronous build via cgo. It is thread safe, but there is
-// no guarantee that the cgo calls will always be that way.
 type Compiler interface {
+	// Run does a synchronous build via cgo. It is thread safe, but there is
+	// no guarantee that the cgo calls will always be that way.
 	Run() error
+	// Imports returns the imports used for a compile. This is built
+	// at parser time in libsass
 	Imports() []string
+	// Option allows the configuration of the compiler. The option is
+	// unexported to encourage use of preconfigured option functions.
 	Option(...option) error
 
+	// CacheBust specifies the cache bust method used by the compiler
+	// Available options: ts, sum
 	CacheBust() string
+
+	// LineComments specifies whether line comments were inserted into
+	// output CSS
 	LineComments() bool
+
+	// Payload returns the attached spritewell information attached
+	// to the compiler context
 	Payload() (types.Payloader, error)
 
-	// Context() is deprecated, provided here as a bridge to the future
+	// Context is deprecated, provided here as a bridge while refactoring
+	// happens in chunks. Use with caution.
 	Context() *Context
 }
 
@@ -144,8 +158,8 @@ func Path(path string) option {
 	}
 }
 
-// annoying option for handlers to work
-
+// Payload gives access to sprite and image information for handlers
+// to perform spriting functions.
 func Payload(load types.Payloader) option {
 	return func(c *sass) error {
 		c.ctx.Payload = load
@@ -153,7 +167,7 @@ func Payload(load types.Payloader) option {
 	}
 }
 
-// ImgBuildDir specifies where to place images
+// ImgBuildDir specifies the destination directory for images
 func ImgBuildDir(path string) option {
 	return func(c *sass) error {
 		c.ctx.GenImgDir = path
@@ -283,5 +297,3 @@ func (c *sass) Imports() []string {
 func (c *sass) LineComments() bool {
 	return c.cmt
 }
-
-var ErrNoCompile = errors.New("No compile has occurred")
