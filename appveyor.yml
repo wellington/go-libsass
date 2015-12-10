@@ -52,7 +52,7 @@ install:
   - echo %PATH%
   - echo %GOPATH%
   - dir C:\mingw64\bin
-  - go get github.com/wellington/spritewell
+  - go get golang.org/x/net/context
 
 build_script:
   - go build -x -ldflags "-extldflags '-static'"
