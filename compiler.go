@@ -4,7 +4,7 @@ import (
 	"errors"
 	"io"
 
-	"github.com/wellington/wellington/types"
+	"github.com/wellington/go-libsass/external/types"
 )
 
 var (
