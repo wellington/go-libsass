@@ -9,10 +9,11 @@ environment:
   CGO_ENABLED: 1
   GOROOT_BOOTSTRAP: C:\go
   GOROOT: C:\go15\go
+  GO15VENDOREXPERIMENT: 1
 
 cache:
   - C:\mingw64 -> appveyor.yml
-  - C:\go15
+  - C:\go15 -> appveyor.yml
 
 install:
   # install nodejs and npm
