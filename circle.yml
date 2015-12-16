@@ -7,7 +7,7 @@ general:
   build_dir: ../.go_workspace/src/github.com/wellington/go-libsass
 dependencies:
   post:
-    - go test -race $(go list -f '{{if len .TestGoFiles}}{{.ImportPath}}{{end}}' ./... | grep -v /vendor/)
+    - go test -i -race $(go list -f '{{if len .TestGoFiles}}{{.ImportPath}}{{end}}' ./... | grep -v /vendor/)
 test:
   override:
-    - go test -race ./...
+    - go test -race $(go list -f '{{if len .TestGoFiles}}{{.ImportPath}}{{end}}' ./... | grep -v /vendor/)
