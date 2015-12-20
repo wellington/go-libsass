@@ -21,6 +21,7 @@ dependencies:
     - go version
     - go env
     - pwd
+    - go get golang.org/x/net/context
     - go test -i -race $(go list -f '{{if len .TestGoFiles}}{{.ImportPath}}{{end}}' ./... | grep -v /vendor/)
 test:
   override:
