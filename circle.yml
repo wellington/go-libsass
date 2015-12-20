@@ -3,6 +3,14 @@ machine:
     CC: gcc
     CXX: g++
     PKG_CONFIG_PATH: $HOME/$CIRCLE_PROJECT_REPONAME/lib/pkgconfig
+  post:
+    # https://storage.googleapis.com/golang/go1.6beta1.linux-amd64.tar.gz
+    - sudo rm -rf /usr/local/go
+    - if [ ! -e go1.6beta1.linux-amd64.tar.gz ]; then curl -o go1.6beta1.linux-amd64.tar.gz https://storage.googleapis.com/golang/go1.6beta1.linux-amd64.tar.gz; fi
+    - sudo tar -C /usr/local -xzf go1.6beta1.linux-amd64.tar.gz
+dependencies:
+  cache_directories:
+    - ~/go1.6beta1.linux-amd64.tar.gz
 general:
   build_dir: ../.go_workspace/src/github.com/wellington/go-libsass
 dependencies:
