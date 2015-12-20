@@ -205,10 +205,8 @@ namespace Sass {
 
   bool Simple_Selector::operator== (const Simple_Selector& rhs) const
   {
-    const Attribute_Selector* ll = dynamic_cast<const Attribute_Selector*>(this);
-    const Attribute_Selector* rr = dynamic_cast<const Attribute_Selector*>(&rhs);
-    if (ll && rr) return *ll == *rr;
-
+    if (const Wrapped_Selector* lw = dynamic_cast<const Wrapped_Selector*>(this)) return *lw == rhs;
+    if (const Attribute_Selector* la = dynamic_cast<const Attribute_Selector*>(this)) return *la == rhs;
     if (is_ns_eq(ns(), rhs.ns()))
     { return name() == rhs.name(); }
     return ns() == rhs.ns();
@@ -216,10 +214,8 @@ namespace Sass {
 
   bool Simple_Selector::operator< (const Simple_Selector& rhs) const
   {
-    const Attribute_Selector* ll = dynamic_cast<const Attribute_Selector*>(this);
-    const Attribute_Selector* rr = dynamic_cast<const Attribute_Selector*>(&rhs);
-    if (ll && rr) return *ll < *rr;
-
+    if (const Wrapped_Selector* lw = dynamic_cast<const Wrapped_Selector*>(this)) return *lw < rhs;
+    if (const Attribute_Selector* la = dynamic_cast<const Attribute_Selector*>(this)) return *la < rhs;
     if (is_ns_eq(ns(), rhs.ns()))
     { return name() < rhs.name(); }
     return ns() < rhs.ns();
@@ -291,7 +287,7 @@ namespace Sass {
     {
       for (i = 0, L = rhs->length(); i < L; ++i)
       {
-        if ((typeid(*(*rhs)[i]) == typeid(Pseudo_Selector) || typeid(*(*rhs)[i]) == typeid(Wrapped_Selector)) && (*rhs)[L-1]->is_pseudo_element())
+        if ((dynamic_cast<Pseudo_Selector*>((*rhs)[i]) || dynamic_cast<Wrapped_Selector*>((*rhs)[i])) && (*rhs)[L-1]->is_pseudo_element())
         { found = true; break; }
       }
     }
@@ -299,7 +295,7 @@ namespace Sass {
     {
       for (i = 0, L = rhs->length(); i < L; ++i)
       {
-        if (typeid(*(*rhs)[i]) == typeid(Pseudo_Selector) || typeid(*(*rhs)[i]) == typeid(Wrapped_Selector))
+        if (dynamic_cast<Pseudo_Selector*>((*rhs)[i]) || dynamic_cast<Wrapped_Selector*>((*rhs)[i]))
         { found = true; break; }
       }
     }
@@ -498,6 +494,26 @@ namespace Sass {
     if (is_ns_eq(ns(), rhs.ns()))
     { return name() == rhs.name(); }
     return ns() == rhs.ns();
+  }
+
+  bool Wrapped_Selector::operator< (const Wrapped_Selector& rhs) const
+  {
+    if (is_ns_eq(ns(), rhs.ns()) && name() == rhs.name())
+    { return *(selector()) < *(rhs.selector()); }
+    if (is_ns_eq(ns(), rhs.ns()))
+    { return name() < rhs.name(); }
+    return ns() < rhs.ns();
+  }
+
+  bool Wrapped_Selector::operator< (const Simple_Selector& rhs) const
+  {
+    if (const Wrapped_Selector* w = dynamic_cast<const Wrapped_Selector*>(&rhs))
+    {
+      return *this < *w;
+    }
+    if (is_ns_eq(ns(), rhs.ns()))
+    { return name() < rhs.name(); }
+    return ns() < rhs.ns();
   }
 
   bool Wrapped_Selector::is_superselector_of(Wrapped_Selector* sub)
@@ -793,7 +809,7 @@ namespace Sass {
       if (lhs_tail->combinator() != rhs_tail->combinator()) return false;
       if (lhs_tail->head() && !rhs_tail->head()) return false;
       if (!lhs_tail->head() && rhs_tail->head()) return false;
-      if (lhs_tail->head() && lhs_tail->head()) {
+      if (lhs_tail->head() && rhs_tail->head()) {
         if (!lhs_tail->head()->is_superselector_of(rhs_tail->head())) return false;
       }
     }

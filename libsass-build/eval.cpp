@@ -178,10 +178,10 @@ namespace Sass {
     double start = sass_start->value();
     double end = sass_end->value();
     // only create iterator once in this environment
-    Env* env = exp.environment();
-    Number* it = SASS_MEMORY_NEW(env->mem, Number, low->pstate(), start, sass_end->unit());
-    AST_Node* old_var = env->has_local(variable) ? env->get_local(variable) : 0;
-    env->set_local(variable, it);
+    Env env(environment(), true);
+    exp.env_stack.push_back(&env);
+    Number* it = SASS_MEMORY_NEW(env.mem, Number, low->pstate(), start, sass_end->unit());
+    env.set_local(variable, it);
     Block* body = f->block();
     Expression* val = 0;
     if (start < end) {
@@ -190,7 +190,7 @@ namespace Sass {
            i < end;
            ++i) {
         it->value(i);
-        env->set_local(variable, it);
+        env.set_local(variable, it);
         val = body->perform(this);
         if (val) break;
       }
@@ -200,14 +200,12 @@ namespace Sass {
            i > end;
            --i) {
         it->value(i);
-        env->set_local(variable, it);
+        env.set_local(variable, it);
         val = body->perform(this);
         if (val) break;
       }
     }
-    // restore original environment
-    if (!old_var) env->del_local(variable);
-    else env->set_local(variable, old_var);
+    exp.env_stack.pop_back();
     return val;
   }
 
@@ -217,7 +215,8 @@ namespace Sass {
   {
     std::vector<std::string> variables(e->variables());
     Expression* expr = e->list()->perform(this);
-    Env* env = exp.environment();
+    Env env(environment(), true);
+    exp.env_stack.push_back(&env);
     List* list = 0;
     Map* map = 0;
     if (expr->concrete_type() == Expression::MAP) {
@@ -230,12 +229,7 @@ namespace Sass {
     else {
       list = static_cast<List*>(expr);
     }
-    // remember variables and then reset them
-    std::vector<AST_Node*> old_vars(variables.size());
-    for (size_t i = 0, L = variables.size(); i < L; ++i) {
-      old_vars[i] = env->has_local(variables[i]) ? env->get_local(variables[i]) : 0;
-      env->set_local(variables[i], 0);
-    }
+
     Block* body = e->block();
     Expression* val = 0;
 
@@ -247,10 +241,10 @@ namespace Sass {
           List* variable = SASS_MEMORY_NEW(ctx.mem, List, map->pstate(), 2, SASS_SPACE);
           *variable << key;
           *variable << value;
-          env->set_local(variables[0], variable);
+          env.set_local(variables[0], variable);
         } else {
-          env->set_local(variables[0], key);
-          env->set_local(variables[1], value);
+          env.set_local(variables[0], key);
+          env.set_local(variables[1], value);
         }
 
         val = body->perform(this);
@@ -266,21 +260,21 @@ namespace Sass {
         if (List* scalars = dynamic_cast<List*>(e)) {
           if (variables.size() == 1) {
             Expression* var = scalars;
-            env->set_local(variables[0], var);
+            env.set_local(variables[0], var);
           } else {
             for (size_t j = 0, K = variables.size(); j < K; ++j) {
               Expression* res = j >= scalars->length()
                 ? SASS_MEMORY_NEW(ctx.mem, Null, expr->pstate())
                 : (*scalars)[j];
-              env->set_local(variables[j], res);
+              env.set_local(variables[j], res);
             }
           }
         } else {
           if (variables.size() > 0) {
-            env->set_local(variables[0], e);
+            env.set_local(variables[0], e);
             for (size_t j = 1, K = variables.size(); j < K; ++j) {
               Expression* res = SASS_MEMORY_NEW(ctx.mem, Null, expr->pstate());
-              env->set_local(variables[j], res);
+              env.set_local(variables[j], res);
             }
           }
         }
@@ -288,11 +282,7 @@ namespace Sass {
         if (val) break;
       }
     }
-    // restore original environment
-    for (size_t j = 0, K = variables.size(); j < K; ++j) {
-      if(!old_vars[j]) env->del_local(variables[j]);
-      else env->set_local(variables[j], old_vars[j]);
-    }
+    exp.env_stack.pop_back();
     return val;
   }
 
@@ -300,10 +290,13 @@ namespace Sass {
   {
     Expression* pred = w->predicate();
     Block* body = w->block();
+    Env env(environment(), true);
+    exp.env_stack.push_back(&env);
     while (*pred->perform(this)) {
       Expression* val = body->perform(this);
       if (val) return val;
     }
+    exp.env_stack.pop_back();
     return 0;
   }
 
@@ -535,18 +528,13 @@ namespace Sass {
     String_Schema* s1 = dynamic_cast<String_Schema*>(b->left());
     String_Schema* s2 = dynamic_cast<String_Schema*>(b->right());
 
-    if ((s1 && s1->has_interpolants()) || (s2 && s2->has_interpolants())) {
-      std::string sep;
-      switch (op_type) {
-        case Sass_OP::SUB: sep = "-"; break;
-        case Sass_OP::DIV: sep = "/"; break;
-        case Sass_OP::ADD: sep = "+"; break;
-        case Sass_OP::MUL: sep = "*"; break;
-        default:                      break;
-      }
+    int precision = (int)ctx.c_options->precision;
+    bool compressed = ctx.output_style() == SASS_STYLE_COMPRESSED;
 
+    if ((s1 && s1->has_interpolants()) || (s2 && s2->has_interpolants()))
+    {
       // If possible upgrade LHS to a number
-      if (op_type == Sass_OP::DIV || op_type == Sass_OP::MUL || op_type == Sass_OP::ADD || op_type == Sass_OP::SUB) {
+      if (op_type == Sass_OP::DIV || op_type == Sass_OP::MUL || op_type == Sass_OP::MOD || op_type == Sass_OP::ADD || op_type == Sass_OP::SUB) {
         if (String_Constant* str = dynamic_cast<String_Constant*>(lhs)) {
           std::string value(str->value());
           const char* start = value.c_str();
@@ -572,16 +560,19 @@ namespace Sass {
       Expression::Concrete_Type r_type = rhs->concrete_type();
 
       if (l_type == Expression::NUMBER && r_type == Expression::NUMBER) {
-        return SASS_MEMORY_NEW(ctx.mem, String_Constant, lhs->pstate(),
-          v_l->to_string() + " " + sep + " " + v_r->to_string());
+        std::string str("");
+        str += v_l->to_string(compressed, precision);
+        if (b->op().ws_before) str += " ";
+        str += b->separator();
+        if (b->op().ws_after) str += " ";
+        str += v_r->to_string(compressed, precision);
+        return SASS_MEMORY_NEW(ctx.mem, String_Constant, lhs->pstate(), str);
       }
     }
 
     // ToDo: throw error in op functions
     // ToDo: then catch and re-throw them
     ParserState pstate(b->pstate());
-    int precision = (int)ctx.c_options->precision;
-    bool compressed = ctx.output_style() == SASS_STYLE_COMPRESSED;
     if (l_type == Expression::NUMBER && r_type == Expression::NUMBER) {
       const Number* l_n = dynamic_cast<const Number*>(lhs);
       const Number* r_n = dynamic_cast<const Number*>(rhs);
@@ -638,7 +629,7 @@ namespace Sass {
       To_String to_string(&ctx);
       // Special cases: +/- variables which evaluate to null ouput just +/-,
       // but +/- null itself outputs the string
-      if (operand->concrete_type() == Expression::NULL_VAL && typeid(*(u->operand())) == typeid(Variable)) {
+      if (operand->concrete_type() == Expression::NULL_VAL && dynamic_cast<Variable*>(u->operand())) {
         u->operand(SASS_MEMORY_NEW(ctx.mem, String_Quoted, u->pstate(), ""));
       }
       else u->operand(operand);
@@ -878,7 +869,7 @@ namespace Sass {
                                    static_cast<double>(strtol(r.c_str(), NULL, 16)),
                                    static_cast<double>(strtol(g.c_str(), NULL, 16)),
                                    static_cast<double>(strtol(b.c_str(), NULL, 16)),
-                                   1, true,
+                                   1, // alpha channel
                                    t->value());
         }
         else {
@@ -887,7 +878,7 @@ namespace Sass {
                                    static_cast<double>(strtol(std::string(2,hext[0]).c_str(), NULL, 16)),
                                    static_cast<double>(strtol(std::string(2,hext[1]).c_str(), NULL, 16)),
                                    static_cast<double>(strtol(std::string(2,hext[2]).c_str(), NULL, 16)),
-                                   1, false,
+                                   1, // alpha channel
                                    t->value());
         }
       } break;
@@ -1278,7 +1269,6 @@ namespace Sass {
   Value* Eval::op_number_color(Memory_Manager& mem, enum Sass_OP op, const Number& l, const Color& rh, bool compressed, int precision, ParserState* pstate)
   {
     Color r(rh);
-    r.disp("");
     double lv = l.value();
     switch (op) {
       case Sass_OP::ADD:
@@ -1293,7 +1283,7 @@ namespace Sass {
       case Sass_OP::SUB:
       case Sass_OP::DIV: {
         std::string sep(op == Sass_OP::SUB ? "-" : "/");
-        std::string color(r.to_string(compressed||!r.sixtuplet(), precision));
+        std::string color(r.to_string(compressed, precision));
         return SASS_MEMORY_NEW(mem, String_Quoted,
                                pstate ? *pstate : l.pstate(),
                                l.to_string(compressed, precision)

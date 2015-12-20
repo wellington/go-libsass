@@ -24,6 +24,10 @@
 #include <random>
 #include <set>
 
+#if defined(_MSC_VER) && _MSC_VER < 1900
+#include "inttypes.h"
+#endif
+
 #ifdef __MINGW32__
 #include "windows.h"
 #include "wincrypt.h"
@@ -211,9 +215,9 @@ namespace Sass {
       return seed;
     }
     #else
-    static std::random_device rd;
     uint64_t GetSeed()
     {
+      std::random_device rd;
       return rd();
     }
     #endif
@@ -1125,11 +1129,15 @@ namespace Sass {
     Signature min_sig = "min($numbers...)";
     BUILT_IN(min)
     {
+      To_String to_string(&ctx);
       List* arglist = ARG("$numbers", List);
       Number* least = 0;
       for (size_t i = 0, L = arglist->length(); i < L; ++i) {
-        Number* xi = dynamic_cast<Number*>(arglist->value_at_index(i));
-        if (!xi) error("`" + std::string(sig) + "` only takes numeric arguments", pstate);
+        Expression* val = arglist->value_at_index(i);
+        Number* xi = dynamic_cast<Number*>(val);
+        if (!xi) {
+          error("\"" + val->perform(&to_string) + "\" is not a number for `min'", pstate);
+        }
         if (least) {
           if (Eval::lt(xi, least)) least = xi;
         } else least = xi;
@@ -1140,11 +1148,15 @@ namespace Sass {
     Signature max_sig = "max($numbers...)";
     BUILT_IN(max)
     {
+      To_String to_string(&ctx);
       List* arglist = ARG("$numbers", List);
       Number* greatest = 0;
       for (size_t i = 0, L = arglist->length(); i < L; ++i) {
-        Number* xi = dynamic_cast<Number*>(arglist->value_at_index(i));
-        if (!xi) error("`" + std::string(sig) + "` only takes numeric arguments", pstate);
+        Expression* val = arglist->value_at_index(i);
+        Number* xi = dynamic_cast<Number*>(val);
+        if (!xi) {
+          error("\"" + val->perform(&to_string) + "\" is not a number for `max'", pstate);
+        }
         if (greatest) {
           if (Eval::lt(greatest, xi)) greatest = xi;
         } else greatest = xi;
