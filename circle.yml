@@ -1,9 +1,13 @@
+general:
+  build_dir: ../.go_workspace/src/github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}
 machine:
   environment:
     CC: gcc
     CXX: g++
-    PKG_CONFIG_PATH: $HOME/$CIRCLE_PROJECT_REPONAME/lib/pkgconfig
+    GOPATH: /home/ubuntu/.go_workspace
   post:
+    - mkdir -p ${GOPATH%%:*}/src/github.com/${CIRCLE_PROJECT_USERNAME}
+    - rm -rf ${GOPATH%%:*}/src/github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}
     # https://storage.googleapis.com/golang/go1.6beta1.linux-amd64.tar.gz
     - sudo rm -rf /usr/local/go
     - if [ ! -e go1.6beta1.linux-amd64.tar.gz ]; then curl -o go1.6beta1.linux-amd64.tar.gz https://storage.googleapis.com/golang/go1.6beta1.linux-amd64.tar.gz; fi
@@ -11,8 +15,6 @@ machine:
 dependencies:
   cache_directories:
     - ~/go1.6beta1.linux-amd64.tar.gz
-general:
-  build_dir: ../.go_workspace/src/github.com/wellington/go-libsass
 dependencies:
   post:
     - go test -i -race $(go list -f '{{if len .TestGoFiles}}{{.ImportPath}}{{end}}' ./... | grep -v /vendor/)
