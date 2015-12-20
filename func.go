@@ -147,7 +147,7 @@ type Funcs struct {
 	wg      sync.WaitGroup
 	closing chan struct{}
 	f       []Func
-	idx     []*string
+	idx     []int
 
 	// Func are complex, we need a reference to the entire context to
 	// successfully execute them.

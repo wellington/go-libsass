@@ -34,7 +34,7 @@ type Imports struct {
 	closing chan struct{}
 	sync.RWMutex
 	m   map[string]Import
-	idx *string
+	idx int
 }
 
 func NewImports() *Imports {
