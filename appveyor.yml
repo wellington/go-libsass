@@ -53,9 +53,9 @@ install:
   - set CXX=g++
   - echo %PATH%
   - echo %GOPATH%
-  - dir C:\mingw64\bin
+  - # dir C:\mingw64\bin
   - go get golang.org/x/net/context
-  - go test
+  - go test -x -v -ldflags "-extldflags '-static'"
 
 build_script:
   - go build -x -ldflags "-extldflags '-static'"
