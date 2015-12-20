@@ -5,14 +5,15 @@ package libs
 // #include <string.h>
 // #include "sass/context.h"
 //
-// extern struct Sass_Import** ImporterBridge(const char* url, const char* prev, void* cookie);
+// extern struct Sass_Import** ImporterBridge(const char* url, const char* prev, int idx);
 //
 // Sass_Import_List SassImporterHandler(const char* cur_path, Sass_Importer_Entry cb, struct Sass_Compiler* comp)
 // {
 //   void* cookie = sass_importer_get_cookie(cb);
 //   struct Sass_Import* previous = sass_compiler_get_last_import(comp);
 //   const char* prev_path = sass_import_get_imp_path(previous);
-//   Sass_Import_List list = ImporterBridge(cur_path, prev_path, cookie);
+//   int idx = *((int *) cookie);
+//   Sass_Import_List list = ImporterBridge(cur_path, prev_path, idx);
 //   return list;
 // }
 //
@@ -35,14 +36,22 @@ import (
 // delete it
 type SafeMap struct {
 	sync.RWMutex
-	m map[*string]interface{}
+	idx int
+	m   map[int]interface{}
+}
+
+func (s *SafeMap) nextidx() int {
+	s.Lock()
+	defer s.Unlock()
+	s.idx++
+	return s.idx
 }
 
 func (s *SafeMap) init() {
-	s.m = make(map[*string]interface{})
+	s.m = make(map[int]interface{})
 }
 
-func (s *SafeMap) get(idx *string) interface{} {
+func (s *SafeMap) get(idx int) interface{} {
 	s.RLock()
 	defer s.RUnlock()
 	return s.m[idx]
@@ -58,16 +67,15 @@ func randString(n int) string {
 	return string(b)
 }
 
-func (s *SafeMap) delete(idx *string) {
+func (s *SafeMap) delete(idx int) {
 	s.Lock()
 	delete(s.m, idx)
 	s.Unlock()
 }
 
 // set accepts an entry and returns an index for it
-func (s *SafeMap) set(ie interface{}) *string {
-	i := randString(8)
-	idx := &i
+func (s *SafeMap) set(ie interface{}) int {
+	idx := s.nextidx()
 	s.Lock()
 	s.m[idx] = ie
 	defer s.Unlock()
@@ -82,10 +90,10 @@ func init() {
 }
 
 // BindImporter attaches a custom importer Go function to an import in Sass
-func BindImporter(opts SassOptions, entries []ImportEntry) *string {
+func BindImporter(opts SassOptions, entries []ImportEntry) int {
 
 	idx := globalImports.set(entries)
-	ptr := unsafe.Pointer(idx)
+	ptr := unsafe.Pointer(&idx)
 
 	imper := C.sass_make_importer(
 		C.Sass_Importer_Fn(C.SassImporterHandler),
@@ -102,7 +110,7 @@ func BindImporter(opts SassOptions, entries []ImportEntry) *string {
 	return idx
 }
 
-func RemoveImporter(idx *string) error {
+func RemoveImporter(idx int) error {
 	delete(globalImports.m, idx)
 	return nil
 }

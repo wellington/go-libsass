@@ -6,7 +6,6 @@ import "C"
 import (
 	"fmt"
 	"sync"
-	"unsafe"
 )
 
 // SassCallback defines the callback libsass eventually executes in
@@ -29,12 +28,12 @@ var gobridgeMu sync.Mutex
 // adheres to the interface provided by libsass.
 //
 //export GoBridge
-func GoBridge(cargs UnionSassValue, ptr unsafe.Pointer) UnionSassValue {
+func GoBridge(cargs UnionSassValue, cidx C.int) UnionSassValue {
 	// Recover the Cookie struct passed in
-	idx := (*string)(ptr)
+	idx := int(cidx)
 	ck, ok := globalFuncs.get(idx).(Cookie)
 	if !ok {
-		fmt.Printf("failed to resolve Cookie %p\n", ptr)
+		fmt.Printf("failed to resolve Cookie %p\n", idx)
 		return MakeNil()
 	}
 	// ck := *(*Cookie)(ptr)

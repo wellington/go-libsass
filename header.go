@@ -27,7 +27,7 @@ type Headers struct {
 	sync.RWMutex
 	h []Header
 	// idx is a pointer for libsass to lookup these Headers
-	idx *string
+	idx int
 }
 
 // NewHeaders instantiates a Headers for prefixing Sass to input

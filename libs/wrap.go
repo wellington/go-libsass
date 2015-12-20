@@ -1,6 +1,6 @@
 package libs
 
-// extern struct Sass_Import** HeaderBridge(void* cookie);
+// extern struct Sass_Import** HeaderBridge(int idx);
 //
 //
 // #//for C.free
@@ -36,11 +36,11 @@ type ImportEntry struct {
 }
 
 //export HeaderBridge
-func HeaderBridge(ptr unsafe.Pointer) C.Sass_Import_List {
-	idx := (*string)(ptr)
+func HeaderBridge(cint C.int) C.Sass_Import_List {
+	idx := int(cint)
 	entries, ok := globalHeaders.get(idx).([]ImportEntry)
 	if !ok {
-		fmt.Printf("failed to resolve header slice: %p\n", ptr)
+		fmt.Printf("failed to resolve header slice: %p\n", idx)
 		return C.sass_make_import_list(C.size_t(1))
 	}
 
@@ -80,12 +80,12 @@ func GetEntry(es []ImportEntry, parent string, path string) (string, error) {
 // Sass_Import is returned for libsass to resolve.
 //
 //export ImporterBridge
-func ImporterBridge(url *C.char, prev *C.char, ptr unsafe.Pointer) C.Sass_Import_List {
+func ImporterBridge(url *C.char, prev *C.char, cidx C.int) C.Sass_Import_List {
 	// Retrieve the index
-	idx := (*string)(ptr)
+	idx := int(cidx)
 	entries, ok := globalImports.get(idx).([]ImportEntry)
 	if !ok {
-		fmt.Printf("failed to resolve import slice: %p\n", ptr)
+		fmt.Printf("failed to resolve import slice: %p\n", idx)
 		entries = []ImportEntry{}
 	}
 
