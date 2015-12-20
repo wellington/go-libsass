@@ -3,19 +3,11 @@ machine:
     CC: gcc
     CXX: g++
     PKG_CONFIG_PATH: $HOME/$CIRCLE_PROJECT_REPONAME/lib/pkgconfig
+general:
+  build_dir: ../.go_workspace/src/github.com/wellington/go-libsass
 dependencies:
-  pre:
-    - make deps
-    # hacks to make circle's gopath to work with go
-    - rm -rf ${GOPATH%%:*}/src/github.com/wellington
-    - mkdir -p ${GOPATH%%:*}/src/github.com/wellington
-    - rsync -av $HOME/$CIRCLE_PROJECT_REPONAME ${GOPATH%%:*}/src/github.com/wellington --exclude .git
-    #- make deps
-    #- echo $PKG_CONFIG_PATH
-  override:
-    - go get -t -d -v ./...
   post:
-    - go test -i -race
+    - go test -i -race $(go list -f '{{if len .TestGoFiles}}{{.ImportPath}}{{end}}' ./... | grep -v /vendor/)
 test:
   override:
     - go test -race $(go list -f '{{if len .TestGoFiles}}{{.ImportPath}}{{end}}' ./... | grep -v /vendor/)
