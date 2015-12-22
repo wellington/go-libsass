@@ -25,4 +25,4 @@ dependencies:
     - go test -i -race $(go list -f '{{if len .TestGoFiles}}{{.ImportPath}}{{end}}' ./... | grep -v /vendor/)
 test:
   override:
-    - go test -short -race $(go list -f '{{if len .TestGoFiles}}{{.ImportPath}}{{end}}' ./... | grep -v /vendor/)
+    - go test -v -short -race $(go list -f '{{if len .TestGoFiles}}{{.ImportPath}}{{end}}' ./... | grep -v /vendor/)
