@@ -99,6 +99,11 @@ div {
 }
 
 func TestLibsassError(t *testing.T) {
+
+	if testing.Short() {
+		t.Skip("Skip error testing on windows")
+	}
+
 	in := bytes.NewBufferString(`div {
   color: red(blue, purple);
 }`)
