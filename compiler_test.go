@@ -2,28 +2,36 @@ package libsass
 
 import (
 	"bytes"
+	"log"
+	"os"
 	"testing"
 )
 
-func TestCompiler_stdin(t *testing.T) {
-	var dst bytes.Buffer
+func ExampleCompiler_stdin() {
+
 	src := bytes.NewBufferString(`div { p { color: red; } }`)
 
-	comp, err := New(&dst, src)
+	comp, err := New(os.Stdout, src)
 	if err != nil {
-		t.Fatal(err)
+		log.Fatal(err)
 	}
 	err = comp.Run()
 	if err != nil {
-		t.Fatal(err)
+		log.Fatal(err)
 	}
 
-	e := `div p {
-  color: red; }
-`
-	if e != dst.String() {
-		t.Errorf("got: %s wanted: %s", dst.String(), e)
-	}
+	// 	e := `div p {
+	//   color: red; }
+	// `
+	// 	if e != dst.String() {
+	// 		t.Errorf("got: %s wanted: %s", dst.String(), e)
+	// 	}
+
+	// Output:
+	// div p {
+	//   color: red; }
+	//
+
 }
 
 func TestCompiler_path(t *testing.T) {
