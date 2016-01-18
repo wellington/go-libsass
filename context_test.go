@@ -34,7 +34,7 @@ p {
 }`)
 
 	var out bytes.Buffer
-	ctx := NewContext()
+	ctx := newContext()
 	err := ctx.Compile(in, &out)
 	if err != nil {
 		panic(err)
@@ -58,7 +58,7 @@ p {
 
 func TestContextNilRun(t *testing.T) {
 	var in, out bytes.Buffer
-	ctx := NewContext()
+	ctx := newContext()
 	err := ctx.Compile(&in, &out)
 	if err == nil {
 		t.Error("No error returned")
@@ -80,7 +80,7 @@ div {
 `)
 
 	var out bytes.Buffer
-	ctx := NewContext()
+	ctx := newContext()
 	err := ctx.Compile(in, &out)
 	if err != nil {
 		panic(err)
@@ -104,7 +104,7 @@ func TestLibsassError(t *testing.T) {
 }`)
 
 	var out bytes.Buffer
-	ctx := NewContext()
+	ctx := newContext()
 
 	ctx.Funcs.Add(Func{
 		Sign: "foo()",
@@ -137,7 +137,7 @@ func ExampleContext_Compile() {
 			  background: foo();
 			}`)
 
-	ctx := NewContext()
+	ctx := newContext()
 
 	ctx.Funcs.Add(Func{
 		Sign: "foo()",
@@ -162,7 +162,7 @@ func ExampleContext_Compile() {
 func BenchmarkContextCompile(b *testing.B) {
 	bits := []byte(`div { color: #005500; }`)
 	big := []byte(`div { color: #005500; }          `)
-	ctx := NewContext()
+	ctx := newContext()
 	out := bytes.NewBuffer(big)
 
 	for i := 0; i < b.N; i++ {

@@ -93,6 +93,10 @@ func init() {
 }
 
 func NewContext() *Context {
+	return newContext()
+}
+
+func newContext() *Context {
 	c := &Context{
 		Headers: NewHeaders(),
 		Imports: NewImports(),

@@ -16,7 +16,7 @@ func TestFunc_simpletypes(t *testing.T) {
 }`)
 
 	//var out bytes.Buffer
-	ctx := NewContext()
+	ctx := newContext()
 	// Communication channel for the C Sass callback function
 	ch := make(chan []interface{}, 1)
 
@@ -68,7 +68,7 @@ func TestFunc_colortype(t *testing.T) {
 }`)
 
 	//var out bytes.Buffer
-	ctx := NewContext()
+	ctx := newContext()
 	// Communication channel for the C Sass callback function
 	ch := make(chan []interface{}, 1)
 
@@ -115,7 +115,7 @@ func TestFunc_complextypes(t *testing.T) {
 	   }`)
 
 	var out bytes.Buffer
-	ctx := NewContext()
+	ctx := newContext()
 	ch := make(chan interface{}, 1)
 	ctx.Funcs.Add(Func{
 		Sign: "foo($list)",
@@ -158,7 +158,7 @@ func TestFunc_customarity(t *testing.T) {
 }`)
 
 	var out bytes.Buffer
-	ctx := NewContext()
+	ctx := newContext()
 
 	ctx.Funcs.Add(Func{
 		Sign: "foo()",

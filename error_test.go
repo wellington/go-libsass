@@ -16,7 +16,7 @@ func TestError_basic(t *testing.T) {
   @include invalid-function('');
 }`)
 	out := bytes.NewBuffer([]byte(""))
-	ctx := NewContext()
+	ctx := newContext()
 	err := ctx.Compile(in, out)
 	if err == nil {
 		t.Error("No error returned")
@@ -41,7 +41,7 @@ func TestError_JSON(t *testing.T) {
 	in := bytes.NewBufferString(`div {
   height: 10px;`)
 	out := &bytes.Buffer{}
-	ctx := NewContext()
+	ctx := newContext()
 	err := ctx.Compile(in, out)
 
 	e := `Error > stdin:2
@@ -64,7 +64,7 @@ func TestError_unbound(t *testing.T) {
   background: map-get($sprite,139);
 }`)
 	out := bytes.NewBuffer([]byte(""))
-	ctx := NewContext()
+	ctx := newContext()
 	err := ctx.Compile(in, out)
 	if err == nil {
 		t.Error("No error returned")
@@ -86,7 +86,7 @@ div {
   background: uniqueFnName(randfile);
 }`)
 	out := bytes.NewBuffer([]byte(""))
-	ctx := NewContext()
+	ctx := newContext()
 	err := ctx.Compile(in, out)
 	if err == nil {
 		t.Error("No error returned")
@@ -113,7 +113,7 @@ func TestError_import(t *testing.T) {
 `)
 
 	out := bytes.NewBuffer([]byte(""))
-	ctx := NewContext()
+	ctx := newContext()
 	err := ctx.Compile(in, out)
 	if err == nil {
 		t.Error("No error returned")
@@ -138,7 +138,7 @@ func TestError_processsass(t *testing.T) {
   "column": 20,
   "message": "error in C function inline-image: format: .svg not supported\nBacktrace:\n\tstdin:3100, in function inline-image\n\tstdin:3100, in mixin printCSSImg\n\tstdin:3117"
 }`)
-	ctx := NewContext()
+	ctx := newContext()
 	err := ctx.ProcessSassError(in)
 	if err != nil {
 		t.Error(err)
@@ -156,7 +156,7 @@ Backtrace:
 }
 
 func TestError_invalid(t *testing.T) {
-	ctx := NewContext()
+	ctx := newContext()
 	err := ctx.ProcessSassError([]byte("/a"))
 
 	if len(err.Error()) == 0 {
@@ -165,7 +165,7 @@ func TestError_invalid(t *testing.T) {
 }
 
 func TestError_line(t *testing.T) {
-	ctx := NewContext()
+	ctx := newContext()
 	ctx.errorString = "Error > stdin:1000"
 	if e := 1000; e != ctx.ErrorLine() {
 		t.Errorf("got: %d wanted: %d", ctx.ErrorLine(), e)

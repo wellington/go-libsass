@@ -201,7 +201,7 @@ func New(dst io.Writer, src io.Reader, opts ...option) (Compiler, error) {
 	c := &sass{
 		dst: dst,
 		src: src,
-		ctx: NewContext(),
+		ctx: newContext(),
 	}
 
 	c.ctx.in = src
