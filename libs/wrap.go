@@ -242,7 +242,7 @@ func SassContextGetOutputString(goctx SassContext) string {
 
 // SassContextGetErrorJSON requests an error in JSON format from libsass
 func SassContextGetErrorJSON(goctx SassContext) string {
-	cstr := C.sass_context_get_error_json(goctx)
+	cstr := C.sass_context_take_error_json(goctx)
 	defer C.free(unsafe.Pointer(cstr))
 	return C.GoString(cstr)
 }
