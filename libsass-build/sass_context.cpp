@@ -444,8 +444,8 @@ extern "C" {
     if (compiler->state != SASS_COMPILER_CREATED) return -1;
     if (compiler->c_ctx == NULL) return 1;
     if (compiler->cpp_ctx == NULL) return 1;
-    if (compiler->c_ctx->error_status)
-      return compiler->c_ctx->error_status;
+    // if (compiler->c_ctx->error_status)
+    //   return compiler->c_ctx->error_status;
     // parse the context we have set up (file or data)
     compiler->root = sass_parse_block(compiler);
     // success
