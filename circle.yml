@@ -4,7 +4,7 @@ machine:
     CXX: g++
     GOPATH: /home/ubuntu/.go_workspace
     GOVER: 1.6
-    GOTAR: ~/go${GOVER}.linux-amd64.tar.gz
+    GOTAR: /home/ubuntu/go${GOVER}.linux-amd64.tar.gz
   post:
     - echo $GOVER
     - mkdir -p ${GOPATH%%:*}/src/github.com/${CIRCLE_PROJECT_USERNAME}
@@ -19,7 +19,7 @@ dependencies:
     - echo "GOVER $GOVER"
     - echo "GOTAR $GOTAR"
     - go version
-    - go version | grep "$GOVER " || (sudo rm -rf /usr/local/go; wget https://storage.googleapis.com/golang/go${GOVER}.linux-amd64.tar.gz -O ~/go${GOVER}.linux-amd64.tar.gz)
+    - go version | grep "$GOVER " || (sudo rm -rf /usr/local/go; wget https://storage.googleapis.com/golang/go${GOVER}.linux-amd64.tar.gz -O ${GOTAR})
     - sudo tar -C /usr/local -xzf ${GOTAR}
     - go version
   post:
