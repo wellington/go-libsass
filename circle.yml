@@ -14,7 +14,7 @@ general:
   build_dir: ../.go_workspace/src/github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}
 dependencies:
   cache_directories:
-    - ${GOTAR}
+    - ~/go1.6.linux-amd64.tar.gz
   pre:
     - echo "GOVER $GOVER"
     - echo "GOTAR $GOTAR"
