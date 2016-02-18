@@ -14,13 +14,13 @@ general:
   build_dir: ../.go_workspace/src/github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}
 dependencies:
   cache_directories:
-    - ~/go${GOVER}.linux-amd64.tar.gz
+    - ${GOTAR}
   pre:
     - echo "GOVER $GOVER"
     - echo "GOTAR $GOTAR"
     - go version
-    - go version | grep "$GOVER " || (sudo rm -rf /usr/local/go; wget https://storage.googleapis.com/golang/go${GOVER}.linux-amd64.tar.gz -O ~/go${GOVER}.linux-amd64.tar.gz)
-    - sudo tar -C /usr/local -xzf ~/go${GOVER}.linux-amd64.tar.gz
+    - go version | grep "$GOVER " || (sudo rm -rf /usr/local/go; wget https://storage.googleapis.com/golang/go${GOVER}.linux-amd64.tar.gz -O ${GOTAR})
+    - sudo tar -C /usr/local -xzf ${GOTAR}
     - go version
   post:
     - go env
