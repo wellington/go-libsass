@@ -19,8 +19,8 @@ dependencies:
     - echo "GOVER $GOVER"
     - echo "GOTAR $GOTAR"
     - go version
-    - go version | grep "$GOVER " || (sudo rm -rf /usr/local/go; wget https://storage.googleapis.com/golang/go${GOVER}.linux-amd64.tar.gz -O ${GOTAR})
-    - sudo tar -C /usr/local -xzf ${GOTAR}
+    - test -e ${GOTAR} || wget https://storage.googleapis.com/golang/go${GOVER}.linux-amd64.tar.gz -O ${GOTAR}
+    - go version | grep "$GOVER " || (sudo rm -rf /usr/local/go; sudo tar -C /usr/local -xzf ${GOTAR})
     - go version
   post:
     - go env
