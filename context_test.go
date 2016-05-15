@@ -35,7 +35,7 @@ p {
 
 	var out bytes.Buffer
 	ctx := newContext()
-	err := ctx.Compile(in, &out)
+	err := ctx.compile(&out, in)
 	if err != nil {
 		panic(err)
 	}
@@ -59,7 +59,7 @@ p {
 func TestContextNilRun(t *testing.T) {
 	var in, out bytes.Buffer
 	ctx := newContext()
-	err := ctx.Compile(&in, &out)
+	err := ctx.compile(&out, &in)
 	if err == nil {
 		t.Error("No error returned")
 	}
@@ -81,7 +81,7 @@ div {
 
 	var out bytes.Buffer
 	ctx := newContext()
-	err := ctx.Compile(in, &out)
+	err := ctx.compile(&out, in)
 	if err != nil {
 		panic(err)
 	}
@@ -111,7 +111,7 @@ func TestLibsassError(t *testing.T) {
 		Fn:   TestCallback,
 		Ctx:  &ctx,
 	})
-	err := ctx.Compile(in, &out)
+	err := ctx.compile(&out, in)
 
 	if err == nil {
 		t.Error("No error thrown for incorrect arity")
@@ -148,7 +148,7 @@ func ExampleContext_Compile() {
 		},
 		Ctx: &ctx,
 	})
-	err := ctx.Compile(in, os.Stdout)
+	err := ctx.compile(os.Stdout, in)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -168,7 +168,7 @@ func BenchmarkContextCompile(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		in := bytes.NewBuffer(bits)
 		out.Reset()
-		err := ctx.Compile(in, out)
+		err := ctx.compile(out, in)
 		if err != nil {
 			b.Error(err)
 		}

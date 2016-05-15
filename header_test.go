@@ -18,7 +18,7 @@ func TestSassHeader_single(t *testing.T) {
 }
 `)
 
-	err := ctx.Compile(in, &out)
+	err := ctx.compile(&out, in)
 	if err != nil {
 		for _, h := range ctx.Headers.h {
 			t.Logf("% #v\n", h)
@@ -49,7 +49,7 @@ func TestSassHeader_multi(t *testing.T) {
 `)
 	ctx.Headers.Add(`@function red() { @return red; }`)
 
-	err := ctx.Compile(in, &out)
+	err := ctx.compile(&out, in)
 	if err != nil {
 		t.Fatal(err)
 	}

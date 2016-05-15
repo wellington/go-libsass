@@ -178,9 +178,9 @@ func (ctx *compctx) FileCompile(path string, out io.Writer, mappath string) erro
 	return nil
 }
 
-// Compile reads in and writes the libsass compiled result to out.
+// compile reads in and writes the libsass compiled result to out.
 // Options and custom functions are applied as specified in Context.
-func (ctx *compctx) Compile(in io.Reader, out io.Writer) error {
+func (ctx *compctx) compile(out io.Writer, in io.Reader) error {
 
 	defer ctx.Reset()
 	bs, err := ioutil.ReadAll(in)

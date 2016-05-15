@@ -40,7 +40,7 @@ func TestFunc_simpletypes(t *testing.T) {
 		Ctx: &ctx,
 	})
 	var out bytes.Buffer
-	err := ctx.Compile(in, &out)
+	err := ctx.compile(&out, in)
 	if err != nil {
 		t.Error(err)
 	}
@@ -89,7 +89,7 @@ func TestFunc_colortype(t *testing.T) {
 		Ctx: &ctx,
 	})
 	var out bytes.Buffer
-	err := ctx.Compile(in, &out)
+	err := ctx.compile(&out, in)
 	if err != nil {
 		t.Error(err)
 	}
@@ -129,7 +129,7 @@ func TestFunc_complextypes(t *testing.T) {
 		},
 		Ctx: &ctx,
 	})
-	err := ctx.Compile(in, &out)
+	err := ctx.compile(&out, in)
 	if err != nil {
 		t.Error(err)
 	}
@@ -165,7 +165,7 @@ func TestFunc_customarity(t *testing.T) {
 		Fn:   TestCallback,
 		Ctx:  &ctx,
 	})
-	err := ctx.Compile(in, &out)
+	err := ctx.compile(&out, in)
 	if err == nil {
 		t.Error("No error thrown for incorrect arity")
 	}

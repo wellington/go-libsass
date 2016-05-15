@@ -238,7 +238,7 @@ func (c *sass) run() error {
 	if len(c.srcFile) > 0 {
 		return c.ctx.FileCompile(c.srcFile, c.dst, c.mappath)
 	}
-	return c.ctx.Compile(c.src, c.dst)
+	return c.ctx.compile(c.dst, c.src)
 }
 
 func (c *sass) CacheBust() string {

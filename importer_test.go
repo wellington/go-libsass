@@ -12,7 +12,7 @@ func TestSassImport_single(t *testing.T) {
 	ctx := newContext()
 	ctx.Imports.m = make(map[string]Import)
 	ctx.Imports.Add("", "a", []byte("a { color: blue; }"))
-	err := ctx.Compile(in, &out)
+	err := ctx.compile(&out, in)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -54,7 +54,7 @@ func TestSassImport_multi(t *testing.T) {
 	ctx.Imports.m = make(map[string]Import)
 	ctx.Imports.Add("", "a", []byte("a { color: blue; }"))
 	ctx.Imports.Add("", "b", []byte("b { font-weight: bold; }"))
-	err := ctx.Compile(in, &out)
+	err := ctx.compile(&out, in)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -81,7 +81,7 @@ div.branch {
 	ctx := newContext()
 	ctx.Imports.m = make(map[string]Import)
 	ctx.Imports.Add("", "branch", []byte(`%branch { color: brown; }`))
-	err := ctx.Compile(in, &out)
+	err := ctx.compile(&out, in)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -108,7 +108,7 @@ div.branch {
 	ctx.Imports.Add("", "branch", []byte(`@import "leaf";
 %branch { color: brown; }`))
 	ctx.Imports.Add("branch", "leaf", []byte("%leaf { color: green; }"))
-	err := ctx.Compile(in, &out)
+	err := ctx.compile(&out, in)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -135,7 +135,7 @@ div.branch {
 	var out bytes.Buffer
 	ctx := newContext()
 	ctx.Imports.m = make(map[string]Import)
-	err := ctx.Compile(in, &out)
+	err := ctx.compile(&out, in)
 	if err == nil {
 		t.Fatal("No error thrown for missing import")
 	}
@@ -172,7 +172,7 @@ div.branch {
 	ctx.Imports.m = make(map[string]Import)
 	ctx.Imports.Add("", "nope", []byte(`@import "leaf";
 %branch { color: brown; }`))
-	err := ctx.Compile(in, &out)
+	err := ctx.compile(&out, in)
 
 	e := `Error > stdin:1
 File to import not found or unreadable: branch

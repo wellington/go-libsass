@@ -17,7 +17,7 @@ func TestError_basic(t *testing.T) {
 }`)
 	out := bytes.NewBuffer([]byte(""))
 	ctx := newContext()
-	err := ctx.Compile(in, out)
+	err := ctx.compile(out, in)
 	if err == nil {
 		t.Error("No error returned")
 	}
@@ -42,7 +42,7 @@ func TestError_JSON(t *testing.T) {
   height: 10px;`)
 	out := &bytes.Buffer{}
 	ctx := newContext()
-	err := ctx.Compile(in, out)
+	err := ctx.compile(out, in)
 
 	e := `Error > stdin:2
 Invalid CSS after "  height: 10px;": expected "}", was ""
@@ -65,7 +65,7 @@ func TestError_unbound(t *testing.T) {
 }`)
 	out := bytes.NewBuffer([]byte(""))
 	ctx := newContext()
-	err := ctx.Compile(in, out)
+	err := ctx.compile(out, in)
 	if err == nil {
 		t.Error("No error returned")
 	}
@@ -87,7 +87,7 @@ div {
 }`)
 	out := bytes.NewBuffer([]byte(""))
 	ctx := newContext()
-	err := ctx.Compile(in, out)
+	err := ctx.compile(out, in)
 	if err == nil {
 		t.Error("No error returned")
 	}
@@ -114,7 +114,7 @@ func TestError_import(t *testing.T) {
 
 	out := bytes.NewBuffer([]byte(""))
 	ctx := newContext()
-	err := ctx.Compile(in, out)
+	err := ctx.compile(out, in)
 	if err == nil {
 		t.Error("No error returned")
 	}

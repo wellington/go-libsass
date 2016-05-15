@@ -12,7 +12,7 @@ func TestOption_precision(t *testing.T) {
 	var out bytes.Buffer
 	ctx := newContext()
 	ctx.Precision = 3
-	err := ctx.Compile(in, &out)
+	err := ctx.compile(&out, in)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -28,7 +28,7 @@ func TestOption_precision(t *testing.T) {
 	out.Reset()
 	ctx = newContext()
 	ctx.Precision = 6
-	err = ctx.Compile(in, &out)
+	err = ctx.compile(&out, in)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -49,7 +49,7 @@ func TestOption_style(t *testing.T) {
 	ctx := newContext()
 	ctx.OutputStyle = 0
 
-	err := ctx.Compile(in, &out)
+	err := ctx.compile(&out, in)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -64,7 +64,7 @@ func TestOption_style(t *testing.T) {
 	in = bytes.NewBufferString(`div { p { color: red; } }`)
 	out.Reset()
 	ctx.OutputStyle = 1
-	err = ctx.Compile(in, &out)
+	err = ctx.compile(&out, in)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -80,7 +80,7 @@ func TestOption_style(t *testing.T) {
 	in = bytes.NewBufferString(`div { p { color: red; } }`)
 	out.Reset()
 	ctx.OutputStyle = 2
-	err = ctx.Compile(in, &out)
+	err = ctx.compile(&out, in)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -94,7 +94,7 @@ func TestOption_style(t *testing.T) {
 	in = bytes.NewBufferString(`div { p { color: red; } }`)
 	out.Reset()
 	ctx.OutputStyle = 3
-	err = ctx.Compile(in, &out)
+	err = ctx.compile(&out, in)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -114,7 +114,7 @@ func TestOption_comment(t *testing.T) {
 	ctx := newContext()
 	ctx.Comments = false
 
-	err := ctx.Compile(in, &out)
+	err := ctx.compile(&out, in)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -129,7 +129,7 @@ func TestOption_comment(t *testing.T) {
 	in = bytes.NewBufferString(`div { p { color: red; } }`)
 	out.Reset()
 	ctx.Comments = true
-	err = ctx.Compile(in, &out)
+	err = ctx.compile(&out, in)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -150,7 +150,7 @@ func TestOption_include(t *testing.T) {
 	var out bytes.Buffer
 	ctx := newContext()
 	ctx.IncludePaths = []string{"test/scss"}
-	err := ctx.Compile(in, &out)
+	err := ctx.compile(&out, in)
 	if err != nil {
 		t.Fatal(err)
 	}
