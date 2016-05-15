@@ -236,7 +236,7 @@ func (c *sass) run() error {
 	}()
 
 	if len(c.srcFile) > 0 {
-		return c.ctx.FileCompile(c.srcFile, c.dst, c.mappath)
+		return c.ctx.fileCompile(c.srcFile, c.dst, c.mappath)
 	}
 	return c.ctx.compile(c.dst, c.src)
 }

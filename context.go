@@ -119,7 +119,7 @@ func (ctx *compctx) Init(goopts libs.SassOptions) libs.SassOptions {
 	return goopts
 }
 
-func (ctx *compctx) FileCompile(path string, out io.Writer, mappath string) error {
+func (ctx *compctx) fileCompile(path string, out io.Writer, mappath string) error {
 
 	defer ctx.Reset()
 	gofc := libs.SassMakeFileContext(path)
