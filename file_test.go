@@ -11,7 +11,7 @@ func TestFile_resolved(t *testing.T) {
 	path := "test/scss/main.scss"
 	var out bytes.Buffer
 	ctx := newContext()
-	err := ctx.fileCompile(path, &out, "")
+	err := ctx.fileCompile(path, &out, "", "")
 	if err != nil {
 		panic(err)
 	}
