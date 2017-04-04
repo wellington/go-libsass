@@ -194,6 +194,13 @@ func BuildDir(path string) option {
 	}
 }
 
+func Importers(imports *Imports) option {
+	return func(c *sass) error {
+		c.ctx.Imports = imports
+		return nil
+	}
+}
+
 type option func(*sass) error
 
 func New(dst io.Writer, src io.Reader, opts ...option) (Compiler, error) {
