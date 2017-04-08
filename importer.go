@@ -2,7 +2,6 @@ package libsass
 
 import (
 	"errors"
-	"io"
 	"sync"
 	"time"
 
@@ -16,7 +15,6 @@ var (
 // Import contains Rel and Abs path and a string of the contents
 // representing an import.
 type Import struct {
-	Body  io.ReadCloser
 	bytes []byte
 	mod   time.Time
 	Prev  string
