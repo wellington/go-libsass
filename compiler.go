@@ -194,7 +194,8 @@ func BuildDir(path string) option {
 	}
 }
 
-func Importers(imports *Imports) option {
+// ImportsOption specifies configuration for import resolution
+func ImportsOption(imports *Imports) option {
 	return func(c *sass) error {
 		c.ctx.Imports = imports
 		return nil
