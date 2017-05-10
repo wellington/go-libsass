@@ -198,11 +198,29 @@ func (ctx *compctx) fileCompile(path string, out io.Writer, mappath, sourceMapRo
 func (ctx *compctx) compile(out io.Writer, in io.Reader) error {
 
 	defer ctx.Reset()
-	bs, err := ioutil.ReadAll(in)
+	var (
+		bs  []byte
+		err error
+	)
 
-	if err != nil {
-		return err
+	// libSass will fail on Sass syntax given as non-file input
+	// convert the input on its behalf
+	if ctx.compiler.Syntax() == SassSyntax {
+		// this is memory intensive
+		var buf bytes.Buffer
+		err := ToScss(in, &buf)
+		if err != nil {
+			return err
+		}
+		bs = buf.Bytes()
+	} else {
+		// ScssSyntax
+		bs, err = ioutil.ReadAll(in)
+		if err != nil {
+			return err
+		}
 	}
+
 	if len(bs) == 0 {
 		return errors.New("No input provided")
 	}
@@ -229,7 +247,6 @@ func (ctx *compctx) compile(out io.Writer, in io.Reader) error {
 	ctx.Status = libs.SassContextGetErrorStatus(goctx)
 	errJSON := libs.SassContextGetErrorJSON(goctx)
 	err = ctx.ProcessSassError([]byte(errJSON))
-
 	if err != nil {
 		return err
 	}
