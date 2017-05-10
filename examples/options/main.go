@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	r, err := os.Open("file.sass")
+	r, err := os.Open("file.scss")
 	if err != nil {
 		log.Fatal(err)
 	}
