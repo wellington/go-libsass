@@ -111,7 +111,9 @@ func (ctx *compctx) Init(goopts libs.SassOptions) libs.SassOptions {
 	ctx.Imports.Bind(goopts)
 	ctx.Funcs.Bind(goopts)
 	libs.SassOptionSetSourceComments(goopts, ctx.compiler.LineComments())
-	libs.SetIncludePaths(goopts, ctx.IncludePaths)
+	//os.PathListSeparator
+	incs := strings.Join(ctx.IncludePaths, string(os.PathListSeparator))
+	libs.SassOptionSetIncludePath(goopts, incs)
 	libs.SassOptionSetPrecision(goopts, ctx.Precision)
 	libs.SassOptionSetOutputStyle(goopts, ctx.OutputStyle)
 	libs.SassOptionSetSourceComments(goopts, ctx.Comments)
@@ -124,9 +126,6 @@ func (ctx *compctx) fileCompile(path string, out io.Writer, mappath, sourceMapRo
 	gofc := libs.SassMakeFileContext(path)
 	goopts := libs.SassFileContextGetOptions(gofc)
 	ctx.Init(goopts)
-	//os.PathListSeparator
-	incs := strings.Join(ctx.IncludePaths, string(os.PathListSeparator))
-	libs.SassOptionSetIncludePath(goopts, incs)
 
 	var fpath string
 	// libSass won't create a source map unless you ask it to
@@ -230,6 +229,7 @@ func (ctx *compctx) compile(out io.Writer, in io.Reader) error {
 	libs.SassOptionSetSourceComments(goopts, true)
 
 	ctx.Init(goopts)
+
 	libs.SassDataContextSetOptions(godc, goopts)
 	goctx := libs.SassDataContextGetContext(godc)
 	ctx.context = goctx
