@@ -1,8 +1,5 @@
 export PKG_CONFIG_PATH=$(shell pwd)/lib/pkgconfig
 
-CPSOURCES=libsass-build/*.cpp libsass-build/*.c libsass-build/*.h libsass-build/*.hpp
-
-
 install: deps
 
 deps: fetch
@@ -24,20 +21,24 @@ libsass-build/include/sass/version.h: libsass-src/include/sass/version.h.in
 	sed 's/@PACKAGE_VERSION@/$(LIBSASS_VERSION)/' libsass-src/include/sass/version.h.in > libsass-build/include/sass/version.h
 
 .PHONY: libsass-build
+SOURCES=libsass-build/*.cpp libsass-build/*.c libsass-build/*.h libsass-build/*.hpp
 libsass-build: libsass-src
 	mkdir -p libsass-build/include
-	rm -rf $(CPSOURCES)
-	echo $(CSOURCES)
-	cp -R $(addprefix libsass-src/src/,$(CSOURCES)) libsass-build
-	cp -R $(addprefix libsass-src/src/,$(SOURCES)) libsass-build
-	cp -R libsass-src/include libsass-build
+	rm -rf $(SOURCES)
+
 	# more stuff
-	cp -R libsass-src/src/*.hpp libsass-build
+	cp -R libsass-src/src/*.c libsass-build
+	cp -R libsass-src/src/*.cpp libsass-build
 	cp -R libsass-src/src/*.h libsass-build
+	cp -R libsass-src/src/*.hpp libsass-build
+
 	cp -R libsass-src/src/b64 libsass-build
+	cp -R libsass-src/include libsass-build
+	cp -R libsass-src/src/memory libsass-build
 	cp -R libsass-src/src/utf8 libsass-build
 	# hack remove the [NA] version.h
 	rm libsass-build/include/sass/version.h
+
 	touch libs/*.go
 
 update-libsass: libsass-build libsass-build/include/sass/version.h
