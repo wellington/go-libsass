@@ -40,7 +40,7 @@ func HeaderBridge(cint C.int) C.Sass_Import_List {
 	idx := int(cint)
 	entries, ok := globalHeaders.Get(idx).([]ImportEntry)
 	if !ok {
-		fmt.Printf("failed to resolve header slice: %p\n", idx)
+		fmt.Printf("failed to resolve header slice: %d\n", idx)
 		return C.sass_make_import_list(C.size_t(1))
 	}
 
@@ -85,7 +85,7 @@ func ImporterBridge(url *C.char, prev *C.char, cidx C.int) C.Sass_Import_List {
 	idx := int(cidx)
 	entries, ok := globalImports.Get(idx).([]ImportEntry)
 	if !ok {
-		fmt.Printf("failed to resolve import slice: %p\n", idx)
+		fmt.Printf("failed to resolve import slice: %d\n", idx)
 		entries = []ImportEntry{}
 	}
 

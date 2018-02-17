@@ -118,7 +118,7 @@ func TestError_import(t *testing.T) {
 	if err == nil {
 		t.Error("No error returned")
 	}
-	e := ErrorMap{2, `File to import not found or unreadable: fail
+	e := ErrorMap{2, `File to import not found or unreadable: fail.
 Parent style sheet: stdin`}
 	if e.line != ctx.err.Line {
 		t.Errorf("wanted:\n%d\ngot:\n%d", e.line, ctx.err.Line)
