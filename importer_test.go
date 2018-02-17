@@ -140,7 +140,7 @@ div.branch {
 		t.Fatal("No error thrown for missing import")
 	}
 	e := `Error > stdin:1
-File to import not found or unreadable: branch
+File to import not found or unreadable: branch.
 Parent style sheet: stdin
 @import "branch";
 div.branch {
@@ -175,7 +175,7 @@ div.branch {
 	err := ctx.compile(&out, in)
 
 	e := `Error > stdin:1
-File to import not found or unreadable: branch
+File to import not found or unreadable: branch.
 Parent style sheet: stdin
 @import "branch";
 div.branch {
