@@ -46,7 +46,7 @@ update-libsass: libsass-build libsass-build/include/sass/version.h
 
 .PHONY: test
 test:
-	go test -tags dev -race .
+	go test -race .
 
 cleanfiles:
 	rm -rf lib include libsass-src libsass-tmp

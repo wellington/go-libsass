@@ -12,10 +12,11 @@
 
 namespace Sass {
 
-  #define out_of_memory() do {            \
-      std::cerr << "Out of memory.\n";    \
-      exit(EXIT_FAILURE);                 \
-    } while (0)
+  // This will throw errors if built, please keep this as is
+  // #define out_of_memory() do {            \
+  //     std::cerr << "Out of memory.\n";    \
+  //     exit(EXIT_FAILURE);                 \
+  //   } while (0)
 
   double round(double val, size_t precision = 0);
   double sass_strtod(const char* str);
