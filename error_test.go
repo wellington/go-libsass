@@ -2,6 +2,7 @@ package libsass
 
 import (
 	"bytes"
+	"strings"
 
 	"testing"
 )
@@ -22,14 +23,14 @@ func TestError_basic(t *testing.T) {
 		t.Error("No error returned")
 	}
 
-	e := ErrorMap{2, "no mixin named invalid-function\n\nBacktrace:\n\tstdin:2"}
+	e := ErrorMap{2, "no mixin named invalid-function"}
 
 	if e.line != ctx.err.Line {
 		t.Errorf("wanted: %d\ngot: %d", e.line, ctx.err.Line)
 	}
 
-	if e.message != ctx.err.Message {
-		t.Errorf("wanted:\n%s\ngot:\n%s", e.message, ctx.err.Message)
+	if !strings.Contains(ctx.err.Message, e.message) {
+		t.Errorf("%q does not contain %q", ctx.err.Message, e.message)
 	}
 
 	if ctx.errorString != ctx.Error() {
@@ -92,18 +93,13 @@ div {
 		t.Error("No error returned")
 	}
 
-	e := ErrorMap{3, "argument `$map` of `map-get($map, $key)`" + ` must be a map
-
-Backtrace:
-	stdin:3, in function ` + "`map-get`" + `
-	stdin:3, in function ` + "`uniqueFnName`" + `
-	stdin:6`}
+	e := ErrorMap{3, "argument `$map` of `map-get($map, $key)` must be a map"}
 	if e.line != ctx.err.Line {
 		t.Errorf("wanted:\n%d\ngot:\n%d", e.line, ctx.err.Line)
 	}
 
-	if e.message != ctx.err.Message {
-		t.Errorf("wanted:\n%s\ngot:\n%s", e.message, ctx.err.Message)
+	if !strings.Contains(ctx.err.Message, e.message) {
+		t.Errorf("%q does not contain %q", ctx.err.Message, e.message)
 	}
 }
 
@@ -118,16 +114,14 @@ func TestError_import(t *testing.T) {
 	if err == nil {
 		t.Error("No error returned")
 	}
-	e := ErrorMap{2, `File to import not found or unreadable: fail.
-Parent style sheet: stdin`}
+	e := ErrorMap{2, `File to import not found or unreadable: fail.`}
 	if e.line != ctx.err.Line {
 		t.Errorf("wanted:\n%d\ngot:\n%d", e.line, ctx.err.Line)
 	}
 
-	if e.message != ctx.err.Message {
-		t.Errorf("wanted:%s\ngot:%s", e.message, ctx.err.Message)
+	if !strings.Contains(ctx.err.Message, e.message) {
+		t.Errorf("%q does not contain %q", ctx.err.Message, e.message)
 	}
-
 }
 
 func TestError_processsass(t *testing.T) {

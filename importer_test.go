@@ -2,6 +2,7 @@ package libsass
 
 import (
 	"bytes"
+	"strings"
 	"testing"
 )
 
@@ -139,26 +140,14 @@ div.branch {
 	if err == nil {
 		t.Fatal("No error thrown for missing import")
 	}
-	e := `Error > stdin:1
-File to import not found or unreadable: branch.
-Parent style sheet: stdin
-@import "branch";
-div.branch {
-  @extend %branch;
-  div.leaf {
-    @extend %leaf;
-  }
-}
-`
-	if e != err.Error() {
-		t.Fatalf("got:\n%s\nwanted:\n%s",
-			err.Error(), e)
-	}
 
+	msg := "File to import not found or unreadable: branch."
+	if !strings.Contains(err.Error(), msg) {
+		t.Errorf("%q does not contain %q", err.Error(), msg)
+	}
 }
 
 func TestSassImporter_notfound(t *testing.T) {
-
 	in := bytes.NewBufferString(`@import "branch";
 div.branch {
   @extend %branch;
@@ -174,19 +163,8 @@ div.branch {
 %branch { color: brown; }`))
 	err := ctx.compile(&out, in)
 
-	e := `Error > stdin:1
-File to import not found or unreadable: branch.
-Parent style sheet: stdin
-@import "branch";
-div.branch {
-  @extend %branch;
-  div.leaf {
-    @extend %leaf;
-  }
-}
-`
-	if e != err.Error() {
-		t.Errorf("got:\n%s\nwant:\n%s", err, e)
+	msg := "File to import not found or unreadable: branch."
+	if !strings.Contains(err.Error(), msg) {
+		t.Errorf("%q does not contain %q", err.Error(), msg)
 	}
-
 }
