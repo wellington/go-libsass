@@ -36,12 +36,14 @@ libsass-build: libsass-src
 	cp -R libsass-src/include libsass-build
 	cp -R libsass-src/src/memory libsass-build
 	cp -R libsass-src/src/utf8 libsass-build
+
 	# hack remove the [NA] version.h
 	rm libsass-build/include/sass/version.h
+	$(MAKE) libsass-build/include/sass/version.h
 
 	touch libs/*.go
 
-update-libsass: libsass-build libsass-build/include/sass/version.h
+update-libsass: libsass-build
 	@echo "Success"
 
 .PHONY: test
