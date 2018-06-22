@@ -4,20 +4,10 @@ import (
 	"bytes"
 	"log"
 	"os"
-	"regexp"
 	"testing"
 
 	"github.com/wellington/go-libsass/libs"
 )
-
-var rerandom *regexp.Regexp
-
-func init() {
-	// Setup build directory
-	os.MkdirAll("test/build/img", 0755)
-	rerandom = regexp.MustCompile(`-\w{6}(?:\.(png|jpg))`)
-
-}
 
 func TestContextFile(t *testing.T) {
 
