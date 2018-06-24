@@ -304,6 +304,14 @@ func SassOptionSetOutputPath(goopts SassOptions, path string) {
 	C.sass_option_set_output_path(goopts, C.CString(path))
 }
 
+// SassOptionSetInputPath is used for input path.
+// The input path is used for source map generating. It can be used to define
+// something with string compilation or to overload the input file path. It is
+// set to "stdin" for data contexts and to the input file on file contexts.
+func SassOptionSetInputPath(goopts SassOptions, path string) {
+	C.sass_option_set_input_path(goopts, C.CString(path))
+}
+
 // SassOptionSetIncludePaths adds additional paths to look for input Sass
 func SassOptionSetIncludePath(goopts SassOptions, path string) {
 	C.sass_option_set_include_path(goopts, C.CString(path))
