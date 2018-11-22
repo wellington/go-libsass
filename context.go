@@ -118,6 +118,10 @@ func (ctx *compctx) Init(goopts libs.SassOptions) libs.SassOptions {
 	libs.SassOptionSetOutputStyle(goopts, ctx.OutputStyle)
 	libs.SassOptionSetSourceComments(goopts, ctx.Comments)
 
+	if ctx.includeMap {
+		libs.SassOptionSetSourceMapEmbed(goopts, true)
+	}
+
 	return goopts
 }
 
@@ -236,9 +240,6 @@ func (ctx *compctx) compile(out io.Writer, in io.Reader) error {
 	gocompiler := libs.SassMakeDataCompiler(godc)
 	libs.SassCompilerParse(gocompiler)
 	libs.SassCompilerExecute(gocompiler)
-	if ctx.includeMap {
-		libs.SassOptionSetSourceMapEmbed(goopts, true)
-	}
 	defer libs.SassDeleteCompiler(gocompiler)
 
 	goout := libs.SassContextGetOutputString(goctx)
