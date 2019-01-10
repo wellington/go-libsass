@@ -15,7 +15,7 @@ To test
 
 Basic example more examples found in [examples](examples)
 
-```
+```go
 buf := bytes.NewBufferString("div { p { color: red; } }")
 if err != nil {
 	log.Fatal(err)
