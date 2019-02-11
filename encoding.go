@@ -68,7 +68,12 @@ func unmarshal(arg SassValue, v interface{}) error {
 		return errors.New("Invalid SASS Value - Taylor Swift")
 	case reflect.String:
 		if libs.IsString(sv) || libs.IsError(sv) {
-			gc := libs.String(sv)
+			var gc string
+			if libs.IsString(sv) {
+				gc = libs.String(sv)
+			} else {
+				gc = libs.Error(sv)
+			}
 			//drop quotes
 			if t, err := strconv.Unquote(gc); err == nil {
 				gc = t
