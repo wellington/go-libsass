@@ -181,6 +181,12 @@ func Len(usv UnionSassValue) int {
 	panic("call of len on unknown type")
 }
 
+func Error(usv UnionSassValue) string {
+	c := C.sass_error_get_message(usv)
+	gc := C.GoString(c)
+	return gc
+}
+
 func String(usv UnionSassValue) string {
 	c := C.sass_string_get_value(usv)
 	gc := C.GoString(c)
