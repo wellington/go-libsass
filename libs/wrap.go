@@ -1,7 +1,8 @@
 package libs
 
-// extern struct Sass_Import** HeaderBridge(int idx);
+// #include "stdint.h"
 //
+// extern struct Sass_Import** HeaderBridge(uintptr_t idx);
 //
 // #//for C.free
 // #include "stdlib.h"
@@ -36,7 +37,7 @@ type ImportEntry struct {
 }
 
 //export HeaderBridge
-func HeaderBridge(cint C.int) C.Sass_Import_List {
+func HeaderBridge(cint C.uintptr_t) C.Sass_Import_List {
 	idx := int(cint)
 	entries, ok := globalHeaders.Get(idx).([]ImportEntry)
 	if !ok {
@@ -80,7 +81,7 @@ func GetEntry(es []ImportEntry, parent string, path string) (string, error) {
 // Sass_Import is returned for libsass to resolve.
 //
 //export ImporterBridge
-func ImporterBridge(url *C.char, prev *C.char, cidx C.int) C.Sass_Import_List {
+func ImporterBridge(url *C.char, prev *C.char, cidx C.uintptr_t) C.Sass_Import_List {
 	var importResolver ImportResolver
 
 	// Retrieve the index

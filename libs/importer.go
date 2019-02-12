@@ -5,14 +5,14 @@ package libs
 // #include <string.h>
 // #include "sass/context.h"
 //
-// extern struct Sass_Import** ImporterBridge(const char* url, const char* prev, int idx);
+// extern struct Sass_Import** ImporterBridge(const char* url, const char* prev, uintptr_t idx);
 //
 // Sass_Import_List SassImporterHandler(const char* cur_path, Sass_Importer_Entry cb, struct Sass_Compiler* comp)
 // {
 //   void* cookie = sass_importer_get_cookie(cb);
 //   struct Sass_Import* previous = sass_compiler_get_last_import(comp);
 //   const char* prev_path = sass_import_get_imp_path(previous);
-//   int idx = *((int *) cookie);
+//   uintptr_t idx = (uintptr_t)cookie;
 //   Sass_Import_List list = ImporterBridge(cur_path, prev_path, idx);
 //   return list;
 // }
@@ -42,7 +42,7 @@ func init() {
 func BindImporter(opts SassOptions, resolver ImportResolver) int {
 
 	idx := globalImports.Set(resolver)
-	ptr := unsafe.Pointer(idx)
+	ptr := unsafe.Pointer(uintptr(idx))
 
 	imper := C.sass_make_importer(
 		C.Sass_Importer_Fn(C.SassImporterHandler),
@@ -56,7 +56,7 @@ func BindImporter(opts SassOptions, resolver ImportResolver) int {
 		(*C.struct_Sass_Options)(unsafe.Pointer(opts)),
 		impers,
 	)
-	return *idx
+	return idx
 }
 
 func RemoveImporter(idx int) error {
