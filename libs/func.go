@@ -1,14 +1,15 @@
 package libs
 
+// #include <stdint.h>
 // #include <stdlib.h>
 // #include "sass/context.h"
 //
-// extern union Sass_Value* GoBridge( union Sass_Value* s_args, int idx);
+// extern union Sass_Value* GoBridge( union Sass_Value* s_args, uintptr_t idx);
 //
 // union Sass_Value* CallSassFunction( union Sass_Value* s_args, Sass_Function_Entry cb, struct Sass_Options* opts ) {
 //     void* cookie = sass_function_get_cookie(cb);
 //     union Sass_Value* ret;
-//     int idx = *((int *)cookie);
+//     uintptr_t idx = (uintptr_t)cookie;
 //     ret = GoBridge(s_args, idx);
 //     return ret;
 // }
@@ -19,9 +20,9 @@ import "unsafe"
 type SassFunc C.Sass_Function_Entry
 
 // SassMakeFunction binds a Go pointer to a Sass function signature
-func SassMakeFunction(signature string, idx *int) SassFunc {
+func SassMakeFunction(signature string, idx int) SassFunc {
 	csign := C.CString(signature)
-	ptr := unsafe.Pointer(idx)
+	ptr := unsafe.Pointer(uintptr(idx))
 	fn := C.sass_make_function(
 		csign,
 		C.Sass_Function_Fn(C.CallSassFunction),
@@ -46,7 +47,7 @@ func BindFuncs(opts SassOptions, cookies []Cookie) []int {
 		idx := globalFuncs.Set(cookies[i])
 		fn := SassMakeFunction(cookie.Sign, idx)
 		funcs[i] = fn
-		ids[i] = *idx
+		ids[i] = idx
 	}
 
 	sz := C.size_t(len(funcs))
