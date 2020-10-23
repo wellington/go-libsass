@@ -37,7 +37,7 @@ type Compiler interface {
 	Imports() []string
 	// Option allows the configuration of the compiler. The option is
 	// unexported to encourage use of preconfigured option functions.
-	Option(...option) error
+	Option(...FuncOpt) error
 
 	// CacheBust specifies the cache bust method used by the compiler
 	// Available options: ts, sum
@@ -55,7 +55,7 @@ type Compiler interface {
 	Syntax() Syntax
 }
 
-func New(dst io.Writer, src io.Reader, opts ...option) (Compiler, error) {
+func New(dst io.Writer, src io.Reader, opts ...FuncOpt) (Compiler, error) {
 
 	c := &sass{
 		dst: dst,

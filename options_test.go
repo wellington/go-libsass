@@ -163,3 +163,10 @@ func TestOption_include(t *testing.T) {
 	}
 
 }
+
+func TestOption_new(t *testing.T) {
+
+	opts := []FuncOpt{Path("")}
+
+	New(nil, nil, opts...)
+}

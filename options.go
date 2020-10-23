@@ -2,10 +2,11 @@ package libsass
 
 import "context"
 
-type option func(*sass) error
+// FuncOpt enables configuration of compiler initialization
+type FuncOpt func(*sass) error
 
 // Option allows the modifying of internal compiler state
-func (c *sass) Option(opts ...option) error {
+func (c *sass) Option(opts ...FuncOpt) error {
 	for _, opt := range opts {
 		err := opt(c)
 		if err != nil {
@@ -18,7 +19,7 @@ func (c *sass) Option(opts ...option) error {
 // BasePath sets the internal path provided to handlers requiring
 // a base path for http calls. This is useful for hosted solutions
 // that need to provided absolute paths to assets.
-func BasePath(basePath string) option {
+func BasePath(basePath string) FuncOpt {
 	return func(c *sass) error {
 		c.httpPath = basePath
 		// FIXME: remove from context
@@ -28,7 +29,7 @@ func BasePath(basePath string) option {
 }
 
 // BuildDir only used for spriting, how terrible!
-func BuildDir(path string) option {
+func BuildDir(path string) FuncOpt {
 	return func(c *sass) error {
 		c.ctx.BuildDir = path
 		return nil
@@ -36,7 +37,7 @@ func BuildDir(path string) option {
 }
 
 // CacheBust append timestamps to static assets to prevent caching
-func CacheBust(t string) option {
+func CacheBust(t string) FuncOpt {
 	return func(c *sass) error {
 		if t == "ts" {
 			t = "timestamp"
@@ -47,7 +48,7 @@ func CacheBust(t string) option {
 }
 
 // Comments toggles whether comments should be included in the output
-func Comments(b bool) option {
+func Comments(b bool) FuncOpt {
 	return func(c *sass) error {
 		c.ctx.Comments = b
 		return nil
@@ -55,7 +56,7 @@ func Comments(b bool) option {
 }
 
 // FontDir specifies where to find fonts
-func FontDir(path string) option {
+func FontDir(path string) FuncOpt {
 	return func(c *sass) error {
 		c.ctx.FontDir = path
 		return nil
@@ -64,7 +65,7 @@ func FontDir(path string) option {
 
 // HTTPPath prefixes all sprites and generated images with this uri.
 // Enabling wellington to serve images when used in HTTP mode
-func HTTPPath(u string) option {
+func HTTPPath(u string) FuncOpt {
 	return func(c *sass) error {
 		c.httpPath = u
 		c.ctx.HTTPPath = u
@@ -73,7 +74,7 @@ func HTTPPath(u string) option {
 }
 
 // ImgBuildDir specifies the destination directory for images
-func ImgBuildDir(path string) option {
+func ImgBuildDir(path string) FuncOpt {
 	return func(c *sass) error {
 		c.ctx.GenImgDir = path
 		return nil
@@ -81,7 +82,7 @@ func ImgBuildDir(path string) option {
 }
 
 // ImgDir specifies where to locate images for spriting
-func ImgDir(path string) option {
+func ImgDir(path string) FuncOpt {
 	return func(c *sass) error {
 		c.ctx.ImageDir = path
 		return nil
@@ -89,7 +90,7 @@ func ImgDir(path string) option {
 }
 
 // ImportsOption specifies configuration for import resolution
-func ImportsOption(imports *Imports) option {
+func ImportsOption(imports *Imports) FuncOpt {
 	return func(c *sass) error {
 		c.ctx.Imports = imports
 		return nil
@@ -97,7 +98,7 @@ func ImportsOption(imports *Imports) option {
 }
 
 // IncludePaths adds additional directories to search for Sass files
-func IncludePaths(includes []string) option {
+func IncludePaths(includes []string) FuncOpt {
 	return func(c *sass) error {
 		c.includePaths = includes
 		c.ctx.IncludePaths = includes
@@ -106,7 +107,7 @@ func IncludePaths(includes []string) option {
 }
 
 // LineComments removes the line by line playby of the Sass compiler
-func LineComments(b bool) option {
+func LineComments(b bool) FuncOpt {
 	return func(c *sass) error {
 		c.cmt = b
 		return nil
@@ -115,7 +116,7 @@ func LineComments(b bool) option {
 
 // OutputStyle controls the presentation of the CSS available
 // option: nested, expanded, compact, compressed
-func OutputStyle(style int) option {
+func OutputStyle(style int) FuncOpt {
 	return func(c *sass) error {
 		c.ctx.OutputStyle = style
 		return nil
@@ -124,7 +125,7 @@ func OutputStyle(style int) option {
 
 // Precision specifies the number of points beyond the decimal
 // place is preserved during math calculations.
-func Precision(prec int) option {
+func Precision(prec int) FuncOpt {
 	return func(c *sass) error {
 		c.ctx.Precision = prec
 		return nil
@@ -134,7 +135,7 @@ func Precision(prec int) option {
 // SourceMap behaves differently depending on compiler used. For
 // compile, it will embed sourcemap into the source. For file
 // compile, it will include a separate file with the source map.
-func SourceMap(b bool, path, sourceMapRoot string) option {
+func SourceMap(b bool, path, sourceMapRoot string) FuncOpt {
 	return func(c *sass) error {
 		c.ctx.includeMap = b
 		c.mappath = path
@@ -148,7 +149,7 @@ func SourceMap(b bool, path, sourceMapRoot string) option {
 // Path specifies a file to read instead of using the provided
 // io.Reader. This activates file compiling that includes line numbers
 // in the resulting output.
-func Path(path string) option {
+func Path(path string) FuncOpt {
 	return func(c *sass) error {
 		c.srcFile = path
 		c.ctx.MainFile = path
@@ -158,7 +159,7 @@ func Path(path string) option {
 
 // Payload gives access to sprite and image information for handlers
 // to perform spriting functions.
-func Payload(load context.Context) option {
+func Payload(load context.Context) FuncOpt {
 	return func(c *sass) error {
 		c.ctx.Payload = load
 		return nil
@@ -173,7 +174,7 @@ const (
 	SassSyntax
 )
 
-func WithSyntax(mode Syntax) option {
+func WithSyntax(mode Syntax) FuncOpt {
 	return func(c *sass) error {
 		c.syntax = mode
 		return nil
