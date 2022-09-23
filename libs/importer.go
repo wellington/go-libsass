@@ -7,13 +7,23 @@ package libs
 //
 // extern struct Sass_Import** ImporterBridge(const char* url, const char* prev, uintptr_t idx);
 //
-// Sass_Import_List SassImporterHandler(const char* cur_path, Sass_Importer_Entry cb, struct Sass_Compiler* comp)
+// Sass_Import_List SassImporterPathsHandler(const char* cur_path, Sass_Importer_Entry cb, struct Sass_Compiler* comp)
 // {
 //   void* cookie = sass_importer_get_cookie(cb);
 //   struct Sass_Import* previous = sass_compiler_get_last_import(comp);
 //   const char* prev_path = sass_import_get_imp_path(previous);
 //   uintptr_t idx = (uintptr_t)cookie;
 //   Sass_Import_List list = ImporterBridge(cur_path, prev_path, idx);
+//   return list;
+// }
+//
+// Sass_Import_List SassImporterAbsHandler(const char* cur_path, Sass_Importer_Entry cb, struct Sass_Compiler* comp)
+// {
+//   void* cookie = sass_importer_get_cookie(cb);
+//   struct Sass_Import* previous = sass_compiler_get_last_import(comp);
+//   const char* prev_abs_path = sass_import_get_abs_path(previous);
+//   uintptr_t idx = (uintptr_t)cookie;
+//   Sass_Import_List list = ImporterBridge(cur_path, prev_abs_path, idx);
 //   return list;
 // }
 //
@@ -34,18 +44,32 @@ var globalImports SafeMap
 // signal loading the import body from the URL.
 type ImportResolver func(url string, prev string) (newURL string, body string, resolved bool)
 
+type ResolverMode int
+
+const (
+	ResolverModeImporterUrl ResolverMode = iota
+	ResolverModeImporterAbsPath
+)
+
 func init() {
 	globalImports.init()
 }
 
 // BindImporter attaches a custom importer Go function to an import in Sass
-func BindImporter(opts SassOptions, resolver ImportResolver) int {
+func BindImporter(opts SassOptions, resolverMode ResolverMode, resolver ImportResolver) int {
 
 	idx := globalImports.Set(resolver)
 	ptr := unsafe.Pointer(uintptr(idx))
 
+	var handler unsafe.Pointer
+	if resolverMode == ResolverModeImporterAbsPath {
+		handler = C.SassImporterAbsHandler
+	} else {
+		handler = C.SassImporterPathsHandler
+	}
+
 	imper := C.sass_make_importer(
-		C.Sass_Importer_Fn(C.SassImporterHandler),
+		C.Sass_Importer_Fn(handler),
 		C.double(0),
 		ptr,
 	)
