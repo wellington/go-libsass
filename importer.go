@@ -34,8 +34,13 @@ type Imports struct {
 	closing chan struct{}
 	sync.RWMutex
 	m        map[string]Import
-	resolver libs.ImportResolver
+	resolver ResolverCallback
 	idx      int
+}
+
+type ResolverCallback struct {
+	resolverMode libs.ResolverMode
+	resolverFn   libs.ImportResolver
 }
 
 func NewImports() *Imports {
@@ -46,8 +51,21 @@ func NewImports() *Imports {
 
 func NewImportsWithResolver(resolver libs.ImportResolver) *Imports {
 	return &Imports{
-		closing:  make(chan struct{}),
-		resolver: resolver,
+		closing: make(chan struct{}),
+		resolver: ResolverCallback{
+			resolverMode: libs.ResolverModeImporterUrl,
+			resolverFn:   resolver,
+		},
+	}
+}
+
+func NewImportsWithAbsResolver(resolver libs.ImportResolver) *Imports {
+	return &Imports{
+		closing: make(chan struct{}),
+		resolver: ResolverCallback{
+			resolverMode: libs.ResolverModeImporterAbsPath,
+			resolverFn:   resolver,
+		},
 	}
 }
 
@@ -132,9 +150,9 @@ func (p *Imports) Bind(opts libs.SassOptions) {
 	}
 	p.RUnlock()
 
-	resolver := func(url string, prev string) (newURL string, body string, resolved bool) {
-		if p.resolver != nil {
-			newURL, body, resolved = p.resolver(url, prev)
+	wrappedResolverFn := func(url string, prev string) (newURL string, body string, resolved bool) {
+		if p.resolver.resolverFn != nil {
+			newURL, body, resolved = p.resolver.resolverFn(url, prev)
 			if resolved {
 				return
 			}
@@ -147,5 +165,5 @@ func (p *Imports) Bind(opts libs.SassOptions) {
 	}
 
 	// set entries somewhere so GC doesn't collect it
-	p.idx = libs.BindImporter(opts, resolver)
+	p.idx = libs.BindImporter(opts, p.resolver.resolverMode, wrappedResolverFn)
 }
