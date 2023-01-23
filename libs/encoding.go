@@ -13,7 +13,7 @@ type UnionSassValue *C.union_Sass_Value
 
 // NewUnionSassValue creates a new empty UnionSassValue
 func NewUnionSassValue() UnionSassValue {
-	return &C.union_Sass_Value{}
+	return MakeNil()
 }
 
 func CloneValue(usv UnionSassValue) UnionSassValue {
