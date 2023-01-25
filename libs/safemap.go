@@ -1,6 +1,8 @@
 package libs
 
-import "sync"
+import (
+	"sync"
+)
 
 // globalImports stores []ImportEntry in a place where GC won't
 // delete it

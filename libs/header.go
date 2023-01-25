@@ -34,7 +34,7 @@ func BindHeader(opts SassOptions, entries []ImportEntry) int {
 	imper := C.sass_make_importer(
 		C.Sass_Importer_Fn(C.SassHeaders),
 		czero,
-		unsafe.Pointer(uintptr(idx)),
+		unsafe.Pointer(&idx),
 	)
 	impers := C.sass_make_importer_list(1)
 	C.sass_importer_set_list_entry(impers, 0, imper)

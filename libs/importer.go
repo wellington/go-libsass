@@ -59,7 +59,7 @@ func init() {
 func BindImporter(opts SassOptions, resolverMode ResolverMode, resolver ImportResolver) int {
 
 	idx := globalImports.Set(resolver)
-	ptr := unsafe.Pointer(uintptr(idx))
+	ptr := unsafe.Pointer(&idx)
 
 	var handler unsafe.Pointer
 	if resolverMode == ResolverModeImporterAbsPath {

@@ -22,7 +22,7 @@ type SassFunc C.Sass_Function_Entry
 // SassMakeFunction binds a Go pointer to a Sass function signature
 func SassMakeFunction(signature string, idx int) SassFunc {
 	csign := C.CString(signature)
-	ptr := unsafe.Pointer(uintptr(idx))
+	ptr := unsafe.Pointer(&idx)
 	fn := C.sass_make_function(
 		csign,
 		C.Sass_Function_Fn(C.CallSassFunction),
