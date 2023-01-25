@@ -1,11 +1,10 @@
 package libsass
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"sync"
-
-	"golang.org/x/net/context"
 
 	"github.com/wellington/go-libsass/libs"
 )

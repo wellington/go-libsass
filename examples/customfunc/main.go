@@ -2,12 +2,11 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"crypto/rand"
 	"fmt"
 	"log"
 	"os"
-
-	"golang.org/x/net/context"
 
 	"github.com/wellington/go-libsass"
 )

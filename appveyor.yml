@@ -28,7 +28,6 @@ install:
   - dir C:\mingw-w64
   - dir C:\mingw-w64\x86_64-7.3.0-posix-seh-rt_v5-rev0\mingw64
   - dir C:\mingw-w64\x86_64-7.3.0-posix-seh-rt_v5-rev0\mingw64\bin
-  - go get golang.org/x/net/context
 
 build_script:
   - go build -x -ldflags "-extldflags '-static'"
