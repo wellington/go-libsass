@@ -21,7 +21,7 @@ libsass-build/include/sass/version.h: libsass-src/include/sass/version.h.in
 	sed 's/@PACKAGE_VERSION@/$(LIBSASS_VERSION)/' libsass-src/include/sass/version.h.in > libsass-build/include/sass/version.h
 
 .PHONY: libsass-build
-SOURCES=libsass-build/*.cpp libsass-build/*.c libsass-build/*.h libsass-build/*.hpp
+SOURCES = $(wildcard libsass-build/*.cpp) $(wildcard libsass-build/*/*.cpp) $(wildcard libsass-build/*.c) $(wildcard libsass-build/*/*.c) $(wildcard libsass-build/*.h) $(wildcard libsass-build/*/*.h) $(wildcard libsass-build/*.hpp) $(wildcard libsass-build/*/*.hpp)
 libsass-build: libsass-src
 	mkdir -p libsass-build/include
 	rm -rf $(SOURCES)
