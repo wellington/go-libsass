@@ -15,20 +15,27 @@ package libs
 // }
 //
 import "C"
-import "unsafe"
+import (
+	"unsafe"
+)
 
 type SassFunc C.Sass_Function_Entry
 
 // SassMakeFunction binds a Go pointer to a Sass function signature
 func SassMakeFunction(signature string, idx int) SassFunc {
 	csign := C.CString(signature)
-	ptr := unsafe.Pointer(&idx)
+	leakidx := idx
+	ptr := unsafe.Pointer(&leakidx)
 	fn := C.sass_make_function(
 		csign,
 		C.Sass_Function_Fn(C.CallSassFunction),
 		ptr)
 
 	return (SassFunc)(fn)
+}
+
+func SassGetFunc(sf SassFunc) interface{} {
+	return C.sass_function_get_function(sf)
 }
 
 var globalFuncs SafeMap

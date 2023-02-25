@@ -39,6 +39,7 @@ type ImportEntry struct {
 //export HeaderBridge
 func HeaderBridge(cint C.uintptr_t) C.Sass_Import_List {
 	idx := int(cint)
+	fmt.Printf("%#v\n", globalHeaders)
 	entries, ok := globalHeaders.Get(idx).([]ImportEntry)
 	if !ok {
 		fmt.Printf("failed to resolve header slice: %d\n", idx)
