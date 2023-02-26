@@ -1,6 +1,9 @@
 libsass
 =========
 
+* Deprecated
+Try this project [https://github.com/bep/godartsass](https://github.com/bep/godartsass)
+
 [![Circle CI](https://circleci.com/gh/wellington/go-libsass.svg?style=svg)](https://circleci.com/gh/wellington/go-libsass) [![Build status](https://ci.appveyor.com/api/projects/status/uhl4swbb2r7lcfpc/branch/master?svg=true)](https://ci.appveyor.com/project/drewwells/go-libsass/branch/master)
 
 The only Sass compliant Go library! go-libsass is a wrapper to the [sass/libsass](http://github.com/sass/libsass) project.
