@@ -22,6 +22,7 @@
 #include "utf8_string.hpp"
 #include "sass_functions.hpp"
 #include "sass2scss.h"
+#include <fcntl.h>
 
 #ifdef _WIN32
 # include <windows.h>
@@ -432,19 +433,34 @@ namespace Sass {
       #else
         struct stat st;
         if (stat(path.c_str(), &st) == -1 || S_ISDIR(st.st_mode)) return 0;
-        std::ifstream file(path.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
-        char* contents = 0;
-        if (file.is_open()) {
-          size_t size = file.tellg();
-          // allocate an extra byte for the null char
-          // and another one for edge-cases in lexer
-          contents = (char*) malloc((size+2)*sizeof(char));
-          file.seekg(0, std::ios::beg);
-          file.read(contents, size);
-          contents[size+0] = '\0';
-          contents[size+1] = '\0';
-          file.close();
-        }
+        #ifdef __APPLE__
+          int file = open(path.c_str(), O_RDONLY);
+          char* contents = 0;
+          if (file != -1) {
+            size_t size = st.st_size;
+            // allocate an extra byte for the null char
+            // and another one for edge-cases in lexer
+            contents = (char*) malloc((size+2)*sizeof(char));
+            read(file, contents, size);
+            contents[size+0] = '\0';
+            contents[size+1] = '\0';
+            close(file);
+          }
+        #else
+          std::ifstream file(path.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
+          char* contents = 0;
+          if (file.is_open()) {
+            size_t size = file.tellg();
+            // allocate an extra byte for the null char
+            // and another one for edge-cases in lexer
+            contents = (char*) malloc((size+2)*sizeof(char));
+            file.seekg(0, std::ios::beg);
+            file.read(contents, size);
+            contents[size+0] = '\0';
+            contents[size+1] = '\0';
+            file.close();
+          }
+        #endif
       #endif
       std::string extension;
       if (path.length() > 5) {
