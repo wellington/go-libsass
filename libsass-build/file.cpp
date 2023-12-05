@@ -430,37 +430,44 @@ namespace Sass {
         CloseHandle(hFile);
         // just convert from unsigned char*
         char* contents = (char*) pBuffer;
-      #else
+      #elif __APPLE__
+        // TODO: waiting for https://github.com/sass/libsass/pull/3183 to be merged.
+        // On OSX `fopen` can fail with "too many open files" but succeeds using `open`.
         struct stat st;
         if (stat(path.c_str(), &st) == -1 || S_ISDIR(st.st_mode)) return 0;
-        #ifdef __APPLE__
-          int file = open(path.c_str(), O_RDONLY);
-          char* contents = 0;
-          if (file != -1) {
-            size_t size = st.st_size;
-            // allocate an extra byte for the null char
-            // and another one for edge-cases in lexer
-            contents = (char*) malloc((size+2)*sizeof(char));
-            read(file, contents, size);
-            contents[size+0] = '\0';
-            contents[size+1] = '\0';
-            close(file);
-          }
-        #else
-          std::ifstream file(path.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
-          char* contents = 0;
-          if (file.is_open()) {
-            size_t size = file.tellg();
-            // allocate an extra byte for the null char
-            // and another one for edge-cases in lexer
-            contents = (char*) malloc((size+2)*sizeof(char));
-            file.seekg(0, std::ios::beg);
-            file.read(contents, size);
-            contents[size+0] = '\0';
-            contents[size+1] = '\0';
-            file.close();
-          }
-        #endif
+        int file = open(path.c_str(), O_RDONLY);
+        char* contents = 0;
+        if (file != -1) {
+          size_t size = st.st_size;
+          contents = (char*) malloc((size+2)*sizeof(char));
+          read(file, contents, size);
+          contents[size+0] = '\0';
+          contents[size+1] = '\0';
+          close(file);
+        }
+      #else
+        // Read the file using `<cstdio>` instead of `<fstream>` for better portability.
+        // The `<fstream>` header initializes `<locale>` and this buggy in GCC4/5 with static linking.
+        // See:
+        // https://www.spinics.net/lists/gcchelp/msg46851.html
+        // https://github.com/sass/sassc-ruby/issues/128
+        struct stat st;
+        if (stat(path.c_str(), &st) == -1 || S_ISDIR(st.st_mode)) return 0;
+        FILE* fd = std::fopen(path.c_str(), "rb");
+        if (fd == nullptr) return nullptr;
+        const std::size_t size = st.st_size;
+        char* contents = static_cast<char*>(malloc(st.st_size + 2 * sizeof(char)));
+        if (std::fread(static_cast<void*>(contents), 1, size, fd) != size) {
+          free(contents);
+          std::fclose(fd);
+          return nullptr;
+        }
+        if (std::fclose(fd) != 0) {
+          free(contents);
+          return nullptr;
+        }
+        contents[size] = '\0';
+        contents[size + 1] = '\0';
       #endif
       std::string extension;
       if (path.length() > 5) {
