@@ -1,4 +1,4 @@
-module github.com/wellington/go-libsass
+module github.com/tom-un/go-libsass
 
 go 1.18
 

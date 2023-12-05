@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/wellington/go-libsass/libs"
+	"github.com/tom-un/go-libsass/libs"
 )
 
 func main() {

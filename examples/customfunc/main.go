@@ -8,7 +8,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/wellington/go-libsass"
+	"github.com/tom-un/go-libsass"
 )
 
 // cryptotext is of type libsass.SassFunc. As libsass compiles the

@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/wellington/go-libsass"
+	"github.com/tom-un/go-libsass"
 )
 
 func main() {

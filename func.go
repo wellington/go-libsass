@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/wellington/go-libsass/libs"
+	"github.com/tom-un/go-libsass/libs"
 )
 
 var ghMu sync.RWMutex

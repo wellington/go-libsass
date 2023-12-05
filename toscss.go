@@ -3,7 +3,7 @@ package libsass
 import (
 	"io"
 
-	"github.com/wellington/go-libsass/libs"
+	"github.com/tom-un/go-libsass/libs"
 )
 
 // ToScss converts Sass to Scss with libsass sass2scss.h

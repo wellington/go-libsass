@@ -1,6 +1,6 @@
 package libsass
 
-import "github.com/wellington/go-libsass/libs"
+import "github.com/tom-un/go-libsass/libs"
 
 // Error takes a Go error and returns a libsass Error
 func Error(err error) SassValue {
