@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/wellington/go-libsass/libs"
+	"github.com/tom-un/go-libsass/libs"
 )
 
 // Context handles the interactions with libsass.  Context
